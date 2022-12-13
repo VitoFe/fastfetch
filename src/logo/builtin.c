@@ -870,38 +870,6 @@ static const FFlogo* getLogoGaruda()
     FF_LOGO_INIT
     FF_LOGO_NAMES("garuda", "garuda-linux")
     FF_LOGO_LINES(
-        "                   .%;888:8898898:\n"
-        "                 x;XxXB%89b8:b8%b88:\n"
-        "              .8Xxd                8X:.\n"
-        "            .8Xx;                    8x:.\n"
-        "          .tt8x          .d            x88;\n"
-        "       .@8x8;          .db:              xx@;\n"
-        "     ,tSXX°          .bbbbbbbbbbbbbbbbbbbB8x@;\n"
-        "   .SXxx            bBBBBBBBBBBBBBBBBBBBbSBX8;\n"
-        " ,888S                                     pd!\n"
-        "8X88/                                       q\n"
-        "8X88/\n"
-        "GBB.\n"
-        " x%88        d888@8@X@X@X88X@@XX@@X@8@X.\n"
-        "   dxXd    dB8b8b8B8B08bB88b998888b88x.\n"
-        "    dxx8o                      .@@;.\n"
-        "      dx88                   .t@x.\n"
-        "        d:SS@8ba89aa67a853Sxxad.\n"
-        "          .d988999889889899dd."
-    )
-    FF_LOGO_COLORS(
-        "31" //red
-    )
-    FF_LOGO_COLOR_KEYS("31"); //red
-    FF_LOGO_COLOR_TITLE("31"); //red
-    FF_LOGO_RETURN
-}
-
-static const FFlogo* getLogoGaruda()
-{
-    FF_LOGO_INIT
-    FF_LOGO_NAMES("garuda", "garuda-linux")
-    FF_LOGO_LINES(
 "\n"
 "\n"
 "                 :============:\n"
@@ -961,25 +929,6 @@ static const FFlogo* getLogoGarudaDragon()
 "          .-++++=-:..            .:--===-.\n"
 "             .-=+++++===-----=======-:.\n"
 "                 .::-=========--::.\n"
-    )
-    FF_LOGO_COLORS(
-        "31" //red
-    )
-    FF_LOGO_COLOR_KEYS("31"); //red
-    FF_LOGO_COLOR_TITLE("31"); //red
-    FF_LOGO_RETURN
-}
-
-static const FFlogo* getLogoGarudaSmall()
-{
-    FF_LOGO_INIT
-    FF_LOGO_NAMES("garuda_small", "garudalinux_small", "garuda-linux-small")
-    FF_LOGO_LINES(
-        "     .----.\n"
-        "   .'   ,  '.\n"
-        " .'    '-----|\n"
-        "'.   -----,\n"
-        "  '.____.'"
     )
     FF_LOGO_COLORS(
         "31" //red
@@ -2366,7 +2315,6 @@ GetLogoMethod* ffLogoBuiltinGetAll()
         getLogoFreeBSD,
         getLogoGaruda,
         getLogoGarudaDragon,
-        getLogoGarudaSmall,
         getLogoGentoo,
         getLogoGentooSmall,
         getLogoKDENeon,
