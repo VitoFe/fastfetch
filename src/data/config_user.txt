@@ -33,11 +33,12 @@
 # Default is true.
 #--multithreading true
 
-# Disable stdout buffer option:
-# Sets if fastfetch should disable application buffer of stdout. Mainly for debugging purpose.
+# Print stat option:
+# Sets if fastfetch should print time usage (in ms) for individual modules
+# If true, it will also enable --show-errors
 # Must be true or false.
 # Default is false.
-#--unbuffered false
+#--stat true
 
 # Slow operations option:
 # Sets if fastfetch is allowed to use known slow operations to detect more / better values.

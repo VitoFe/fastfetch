@@ -62,7 +62,7 @@ The following libraries are used if present at runtime:
 * [`libvulkan`](https://www.vulkan.org/): Vulkan module. Usually has been provided by GPU drivers.
 * [`libOpenCL`](https://www.khronos.org/opencl/): OpenCL module
 
-Note: On Windows 10-, [ConEmu](https://conemu.github.io/en/AnsiEscapeCodes.html) is required to run fastfetch due to [the lack of ASCII escape code native support](https://en.wikipedia.org/wiki/ANSI_escape_code#DOS,_OS/2,_and_Windows). Also make sure to [use `chcp 65001` to enable UTF-8 support](https://conemu.github.io/en/UnicodeSupport.html#utf-8) if you run Windows locale other than English. 
+Note: On Windows 10-, [ConEmu](https://conemu.github.io/en/AnsiEscapeCodes.html) is required to run fastfetch due to [the lack of ASCII escape code native support](https://en.wikipedia.org/wiki/ANSI_escape_code#DOS,_OS/2,_and_Windows). Fastfetch on Windows targets [UCRT](https://learn.microsoft.com/en-us/cpp/windows/universal-crt-deployment), which is not installed On Windows 10- by default. If you get errors like `ucrtbase.dll is missing`, try upgrading your system with `Windows Update` or downloading `fastfetch-windows-old` in [Github Actions](https://github.com/LinusDierheimer/fastfetch/actions) which targets the ancient MSVCRT.
 
 ### Android
 
