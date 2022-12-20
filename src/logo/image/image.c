@@ -22,7 +22,7 @@
 #else
 #include <wincon.h>
 
-inline char* realpath(const char* restrict file_name, char* restrict resolved_name)
+static inline char* realpath(const char* restrict file_name, char* restrict resolved_name)
 {
     return _fullpath(resolved_name, file_name, _MAX_PATH);
 }
