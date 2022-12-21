@@ -75,6 +75,9 @@ typedef struct FFconfig
         uint32_t paddingLeft;
         uint32_t paddingRight;
         bool printRemaining;
+
+        bool chafaFgOnly;
+        FFstrbuf chafaSymbols;
     } logo;
 
     //If one of those is empty, ffLogoPrint will set them
@@ -85,7 +88,6 @@ typedef struct FFconfig
 
     bool showErrors;
     bool recache;
-    bool cacheSave;
     bool allowSlowOperations;
     bool disableLinewrap;
     bool hideCursor;
@@ -208,7 +210,6 @@ typedef struct FFstate
     #endif
 
     FFlist configDirs;
-    FFstrbuf cacheDir;
 } FFstate;
 
 typedef struct FFinstance

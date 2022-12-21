@@ -1,5 +1,4 @@
 #include "fastfetch.h"
-#include "common/caching.h"
 #include "common/parsing.h"
 #include "common/thread.h"
 #include "detection/qt.h"
@@ -96,34 +95,6 @@ static void initConfigDirs(FFstate* state)
     #undef FF_ENSURE_ONLY_ONCE_IN_LIST
 }
 
-static void initCacheDir(FFstate* state)
-{
-    ffStrbufInitA(&state->cacheDir, 64);
-
-    ffStrbufAppendS(&state->cacheDir, getenv("XDG_CACHE_HOME"));
-
-    if(state->cacheDir.length == 0)
-    {
-        ffStrbufAppendS(&state->cacheDir, state->passwd->pw_dir);
-        ffStrbufAppendS(&state->cacheDir, "/.cache/");
-    }
-    else
-        ffStrbufEnsureEndsWithC(&state->cacheDir, '/');
-
-    mkdir(state->cacheDir.chars
-        #ifndef WIN32
-            , S_IRWXU | S_IXGRP | S_IRGRP | S_IXOTH | S_IROTH
-        #endif
-    ); //I hope everybody has a cache folder, but who knows
-
-    ffStrbufAppendS(&state->cacheDir, "fastfetch/");
-    mkdir(state->cacheDir.chars
-        #ifndef WIN32
-            , S_IRWXU | S_IRGRP | S_IROTH
-        #endif
-    );
-}
-
 static void initState(FFstate* state)
 {
     #ifdef WIN32
@@ -146,7 +117,6 @@ static void initState(FFstate* state)
     #endif
 
     initConfigDirs(state);
-    initCacheDir(state);
 }
 
 static void initModuleArg(FFModuleArgs* args)
@@ -168,6 +138,9 @@ static void defaultConfig(FFinstance* instance)
     instance->config.logo.paddingRight = 4;
     instance->config.logo.printRemaining = true;
 
+    instance->config.logo.chafaFgOnly = false;
+    ffStrbufInitS(&instance->config.logo.chafaSymbols, "block+border+space-wide-inverted"); // Chafa default
+
     ffStrbufInit(&instance->config.colorKeys);
     ffStrbufInit(&instance->config.colorTitle);
 
@@ -176,7 +149,6 @@ static void defaultConfig(FFinstance* instance)
 
     instance->config.showErrors = false;
     instance->config.recache = false;
-    instance->config.cacheSave = true;
     instance->config.allowSlowOperations = false;
     instance->config.disableLinewrap = true;
     instance->config.hideCursor = true;
@@ -381,10 +353,6 @@ void ffStart(FFinstance* instance)
     sigaction(SIGQUIT, &action, NULL);
     #endif
 
-    //We do the cache validation here, so we can skip it if --recache is given
-    if(!instance->config.recache)
-        ffCacheValidate(instance);
-
     //reset everything to default before we start printing
     if(!instance->config.pipe)
         fputs(FASTFETCH_TEXT_MODIFIER_RESET, stdout);
@@ -416,6 +384,7 @@ static void destroyModuleArg(FFModuleArgs* args)
 static void destroyConfig(FFinstance* instance)
 {
     ffStrbufDestroy(&instance->config.logo.source);
+    ffStrbufDestroy(&instance->config.logo.chafaSymbols);
     for(uint8_t i = 0; i < (uint8_t) FASTFETCH_LOGO_MAX_COLORS; ++i)
         ffStrbufDestroy(&instance->config.logo.colors[i]);
     ffStrbufDestroy(&instance->config.colorKeys);
@@ -503,8 +472,6 @@ static void destroyState(FFinstance* instance)
     for(uint32_t i = 0; i < instance->state.configDirs.length; ++i)
         ffStrbufDestroy((FFstrbuf*)ffListGet(&instance->state.configDirs, i));
     ffListDestroy(&instance->state.configDirs);
-
-    ffStrbufDestroy(&instance->state.cacheDir);
 }
 
 void ffDestroyInstance(FFinstance* instance)
