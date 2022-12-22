@@ -38,6 +38,7 @@ typedef enum FFLogoType
     FF_LOGO_TYPE_DATA_RAW,    //text data, printed as is
     FF_LOGO_TYPE_IMAGE_SIXEL, //image file, printed as sixel codes.
     FF_LOGO_TYPE_IMAGE_KITTY, //image file, printed as kitty graphics protocol
+    FF_LOGO_TYPE_IMAGE_ITERM, //image file, printed as iterm graphics protocol
     FF_LOGO_TYPE_IMAGE_CHAFA, //image file, printed as ascii art using libchafa
 } FFLogoType;
 
@@ -75,9 +76,13 @@ typedef struct FFconfig
         uint32_t paddingLeft;
         uint32_t paddingRight;
         bool printRemaining;
+        bool preserveAspectRadio;
 
         bool chafaFgOnly;
         FFstrbuf chafaSymbols;
+        uint32_t chafaCanvasMode;
+        uint32_t chafaColorSpace;
+        uint32_t chafaDitherMode;
     } logo;
 
     //If one of those is empty, ffLogoPrint will set them

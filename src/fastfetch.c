@@ -979,6 +979,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
             instance->config.logo.paddingRight = optionParseUInt32(key, value);
         else if(strcasecmp(subkey, "-print-remaining") == 0)
             instance->config.logo.printRemaining = optionParseBoolean(value);
+        else if(strcasecmp(subkey, "-preserve-aspect-radio") == 0)
+            instance->config.logo.preserveAspectRadio = optionParseBoolean(value);
         else
             goto error;
     }
@@ -1017,14 +1019,21 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         optionParseString(key, value, &instance->config.logo.source);
         instance->config.logo.type = FF_LOGO_TYPE_IMAGE_CHAFA;
     }
+    else if(strcasecmp(key, "--iterm") == 0)
+    {
+        optionParseString(key, value, &instance->config.logo.source);
+        instance->config.logo.type = FF_LOGO_TYPE_IMAGE_ITERM;
+    }
     else if(strcasecmp(key, "--chafa-fg-only") == 0)
-    {
         instance->config.logo.chafaFgOnly = optionParseBoolean(value);
-    }
     else if(strcasecmp(key, "--chafa-symbols") == 0)
-    {
         optionParseString(key, value, &instance->config.logo.chafaSymbols);
-    }
+    else if(strcasecmp(key, "--chafa-canvas-mode") == 0)
+        instance->config.logo.chafaCanvasMode = optionParseUInt32(key, value);
+    else if(strcasecmp(key, "--chafa-color-space") == 0)
+        instance->config.logo.chafaColorSpace = optionParseUInt32(key, value);
+    else if(strcasecmp(key, "--chafa-dither-mode") == 0)
+        instance->config.logo.chafaDitherMode = optionParseUInt32(key, value);
 
     ///////////////////
     //Display options//

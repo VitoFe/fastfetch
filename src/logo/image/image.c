@@ -2,6 +2,59 @@
 #include "common/io.h"
 #include "common/printing.h"
 
+static FFstrbuf base64Encode(FFstrbuf* in)
+{
+    const char* base64Chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+
+    FFstrbuf out;
+    ffStrbufInitA(&out, 8 * (1 + in->length / 6));
+
+    unsigned val = 0;
+    int valb = -6;
+    for (uint32_t i = 0; i < in->length; ++i)
+    {
+        unsigned char c = (unsigned char) in->chars[i];
+        val = (val << 8) + c;
+        valb += 8;
+        while (valb >= 0)
+        {
+            ffStrbufAppendC(&out, base64Chars[(val>>valb)&0x3F]);
+            valb -= 6;
+        }
+    }
+    if (valb > -6) ffStrbufAppendC(&out, base64Chars[((val<<8)>>(valb+8))&0x3F]);
+    while (out.length % 4) ffStrbufAppendC(&out, '=');
+    return out;
+}
+
+static bool printImageIterm(FFinstance* instance)
+{
+    if(instance->config.logo.width == 0 || instance->config.logo.height == 0)
+        return false;
+
+    FFstrbuf buf;
+    ffStrbufInit(&buf);
+    if(!ffAppendFileBuffer(instance->config.logo.source.chars, &buf))
+        return false;
+
+    ffPrintCharTimes(' ', instance->config.logo.paddingLeft);
+    FFstrbuf base64 = base64Encode(&buf);
+    printf("\033]1337;File=inline=1;width=%u;height=%u;preserveAspectRatio=%u:%s\a\033[9999999D\n\033[%uA",
+        (unsigned) instance->config.logo.width,
+        (unsigned) instance->config.logo.height,
+        (unsigned) instance->config.logo.preserveAspectRadio,
+        base64.chars,
+        (unsigned) instance->config.logo.height
+    );
+    instance->state.logoWidth = instance->config.logo.width + instance->config.logo.paddingLeft + instance->config.logo.paddingRight;
+    instance->state.logoHeight = instance->config.logo.height;
+
+    ffStrbufDestroy(&buf);
+    ffStrbufDestroy(&base64);
+
+    return true;
+}
+
 #if defined(FF_HAVE_IMAGEMAGICK7) || defined(FF_HAVE_IMAGEMAGICK6)
 
 #define FF_KITTY_MAX_CHUNK_SIZE 4096
@@ -240,21 +293,12 @@ static bool printImageChafa(FFinstance* instance, FFLogoRequestData* requestData
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_new, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_set_geometry, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_set_symbol_map, false)
-    FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_set_color_space, false)
-    FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_set_canvas_mode, false)
-    FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_set_fg_only_enabled, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_new, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_draw_all_pixels, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_print, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_unref, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_canvas_config_unref, false)
     FF_LIBRARY_LOAD_SYMBOL(chafa, chafa_symbol_map_unref, false)
-
-    #ifndef _WIN32
-    // FIXME: These functions must be imported from `libglib` dlls. Leak them for now
-    FF_LIBRARY_LOAD_SYMBOL(chafa, g_string_free, false)
-    FF_LIBRARY_LOAD_SYMBOL(chafa, g_error_free, false)
-    #endif
 
     imageData->ffCopyMagickString(imageData->imageInfo->magick, "RGBA", 5);
     size_t length;
@@ -273,10 +317,31 @@ static bool printImageChafa(FFinstance* instance, FFLogoRequestData* requestData
     ChafaCanvasConfig* canvasConfig = ffchafa_canvas_config_new();
     ffchafa_canvas_config_set_geometry(canvasConfig, (gint) requestData->logoCharacterWidth, (gint) requestData->logoCharacterHeight);
     ffchafa_canvas_config_set_symbol_map(canvasConfig, symbolMap);
-    ffchafa_canvas_config_set_color_space(canvasConfig, CHAFA_COLOR_SPACE_DIN99D);
-    ffchafa_canvas_config_set_canvas_mode(canvasConfig, CHAFA_CANVAS_MODE_TRUECOLOR);
-    // ffchafa_canvas_config_set_fg_only_enabled(canvasConfig, instance->config.logo.chafaFgOnly);
-    // TODO: expose more chafa configs to fastfetch flags
+
+    if(instance->config.logo.chafaFgOnly)
+    {
+        FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, chafa_canvas_config_set_fg_only_enabled);
+        if(ffchafa_canvas_config_set_fg_only_enabled)
+            ffchafa_canvas_config_set_fg_only_enabled(canvasConfig, true);
+    }
+    if(instance->config.logo.chafaCanvasMode < CHAFA_CANVAS_MODE_MAX)
+    {
+        FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, chafa_canvas_config_set_canvas_mode);
+        if(ffchafa_canvas_config_set_canvas_mode)
+            ffchafa_canvas_config_set_canvas_mode(canvasConfig, (ChafaCanvasMode) instance->config.logo.chafaCanvasMode);
+    }
+    if(instance->config.logo.chafaColorSpace < CHAFA_COLOR_SPACE_MAX)
+    {
+        FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, chafa_canvas_config_set_color_space)
+        if(ffchafa_canvas_config_set_color_space)
+            ffchafa_canvas_config_set_color_space(canvasConfig, (ChafaColorSpace) instance->config.logo.chafaColorSpace);
+    }
+    if(instance->config.logo.chafaDitherMode < CHAFA_DITHER_MODE_MAX)
+    {
+        FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, chafa_canvas_config_set_dither_mode)
+        if(ffchafa_canvas_config_set_dither_mode)
+            ffchafa_canvas_config_set_dither_mode(canvasConfig, (ChafaDitherMode) instance->config.logo.chafaDitherMode);
+    }
 
     ChafaCanvas* canvas = ffchafa_canvas_new(canvasConfig);
     ffchafa_canvas_draw_all_pixels(
@@ -297,10 +362,16 @@ static bool printImageChafa(FFinstance* instance, FFLogoRequestData* requestData
     ffLogoPrintChars(instance, result.chars, false);
     writeCacheStrbuf(requestData, &result, FF_CACHE_FILE_CHAFA);
 
-    #ifndef _WIN32
-    ffg_string_free(str, TRUE);
-    ffg_error_free(error);
-    #endif
+    // FIXME: These functions must be imported from `libglib` dlls on Windows
+    FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, g_string_free);
+    if(ffg_string_free)
+        ffg_string_free(str, TRUE);
+    if(error)
+    {
+        FF_LIBRARY_LOAD_SYMBOL_LAZY(chafa, g_error_free)
+        if(ffg_error_free)
+            ffg_error_free(error);
+    }
 
     ffchafa_canvas_unref(canvas);
     ffchafa_canvas_config_unref(canvasConfig);
@@ -571,6 +642,9 @@ static bool getCharacterPixelDimensions(FFLogoRequestData* requestData)
 
 bool ffLogoPrintImageIfExists(FFinstance* instance, FFLogoType type)
 {
+    if(type == FF_LOGO_TYPE_IMAGE_ITERM)
+        return printImageIterm(instance);
+
     //Performance optimisation
     #ifndef FF_HAVE_CHAFA
         if(type == FF_LOGO_TYPE_IMAGE_CHAFA)
@@ -646,7 +720,8 @@ bool ffLogoPrintImageIfExists(FFinstance* instance, FFLogoType type)
 #else //FF_HAVE_IMAGEMAGICK{6, 7}
 bool ffLogoPrintImageIfExists(FFinstance* instance, FFLogoType type)
 {
-    FF_UNUSED(instance, type);
+    if(type == FF_LOGO_TYPE_IMAGE_ITERM)
+        return printImageIterm(instance);
     return false;
 }
 #endif //FF_HAVE_IMAGEMAGICK{6, 7}
