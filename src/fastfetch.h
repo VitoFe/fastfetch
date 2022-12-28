@@ -16,15 +16,12 @@
     #include "util/windows/utsname.h"
 #endif
 
-#if FF_HAVE_SYSINFO_H
-    #include <sys/sysinfo.h>
-#endif
-
 #include "util/FFstrbuf.h"
 #include "util/FFlist.h"
 
 static inline void ffUnused(int dummy, ...) { (void) dummy; }
 #define FF_UNUSED(...) ffUnused(0, __VA_ARGS__);
+#define FF_UNUSED_PARAM __attribute__ ((__unused__))
 
 #define FASTFETCH_LOGO_MAX_COLORS 9 //two digits would make parsing much more complicated (index 1 - 9)
 
@@ -210,10 +207,6 @@ typedef struct FFstate
 
     struct passwd* passwd;
     struct utsname utsname;
-
-    #if FF_HAVE_SYSINFO_H
-        struct sysinfo sysinfo;
-    #endif
 
     FFlist configDirs;
 } FFstate;
