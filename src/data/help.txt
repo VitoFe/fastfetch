@@ -4,6 +4,7 @@ Informative options:
     -h,--help:             Show this message
     -h,--help <command>:   Show help for a specific command
     -v,--version:          Show the version of fastfetch
+    --list-config-paths:   List search paths of config files
     --list-logos:          List available logos
     --list-modules:        List available modules
     --list-presets:        List presets fastfetch knows about; they can be loaded with --load-config (+)
@@ -12,6 +13,8 @@ Informative options:
     --print-config-system: Print the default system config
     --print-config-user:   Print the default user config
     --print-structure:     Print the default structure
+    --gen-config:          Generate a sample config file in the default path
+    --gen-config-force:    Generate a sample config file in the default path. Overwrite the existing one
 
 General options:
     --load-config <file>:             Load a config file or preset (+)
@@ -31,6 +34,7 @@ Logo options:
     --logo-padding <padding>:              Set the padding on the left and the right of the logo
     --logo-padding-left <padding>:         Set the padding on the left of the logo
     --logo-padding-right <padding>:        Set the padding on the right of the logo
+    --logo-padding-top <padding>:          Set the padding on the top of the logo
     --logo-print-remaining <?value>:       Whether to print the remaining logo, if it has more lines than modules to display
     --file <file>:                         Short for --logo-type file --logo <file>
     --file-raw <file>:                     Short for --logo-type file-raw --logo <file>

@@ -37,6 +37,7 @@ typedef enum FFLogoType
     FF_LOGO_TYPE_IMAGE_KITTY, //image file, printed as kitty graphics protocol
     FF_LOGO_TYPE_IMAGE_ITERM, //image file, printed as iterm graphics protocol
     FF_LOGO_TYPE_IMAGE_CHAFA, //image file, printed as ascii art using libchafa
+    FF_LOGO_TYPE_IMAGE_RAW,   //image file, printed as raw binary string
 } FFLogoType;
 
 typedef enum FFBinaryPrefixType
@@ -70,6 +71,7 @@ typedef struct FFconfig
         FFstrbuf colors[FASTFETCH_LOGO_MAX_COLORS];
         uint32_t width;
         uint32_t height;
+        uint32_t paddingTop;
         uint32_t paddingLeft;
         uint32_t paddingRight;
         bool printRemaining;

@@ -1,3 +1,27 @@
+# dev
+
+Notable Changes:
+* fastfetch no longer creates a sample config file silently. Use `--gen-config` to generate one.
+* fastfetch now search for user config file in the order of `fastfetch --list-config-paths`
+
+Features:
+* `--logo-padding-top` option (@CarterLi, #372)
+* Raw image file as logo support (@CarterLi)
+* Look for config files in `$APPDATA` ([RoamingAppData](https://superuser.com/questions/21458/why-are-there-directories-called-local-locallow-and-roaming-under-users-user#answer-21462)) (Windows)
+* Look for config files in `~/Library/Preferences` (macOS)
+* Add `--list-config-paths` option which list search paths of config files
+
+Logos:
+* Raspbian (@IamNoRobot, #373)
+
+Bugfixes:
+* `--logo-type` now does accept `iterm` too (@CarterLi, #374)
+* Fix mintty terminal font detection
+
+Other:
+* Fixed a Typo in iterm error message (@jessebot, #376)
+* Don't try to load config file in `/etc` (Windows)
+
 # 1.8.2
 
 Bugfixes:

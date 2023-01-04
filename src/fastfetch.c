@@ -538,6 +538,15 @@ static inline void listAvailablePresets(FFinstance* instance)
     ffStrbufDestroy(&folder);
 }
 
+static void listConfigPaths(FFinstance* instance)
+{
+    FF_LIST_FOR_EACH(FFstrbuf, folder, instance->state.configDirs)
+    {
+        ffStrbufAppendS(folder, "fastfetch/config.conf");
+        printf("%s%s\n", folder->chars, ffFileExists(folder->chars, S_IFREG) ? " (*)" : "");
+    }
+}
+
 static void parseOption(FFinstance* instance, FFdata* data, const char* key, const char* value);
 
 static bool parseConfigFile(FFinstance* instance, FFdata* data, const char* path)
@@ -601,6 +610,25 @@ static bool parseConfigFile(FFinstance* instance, FFdata* data, const char* path
 
     fclose(file);
     return true;
+}
+
+static void generateConfigFile(FFinstance* instance, bool force)
+{
+    FFstrbuf* filename = (FFstrbuf*) ffListGet(&instance->state.configDirs, 0);
+    // Paths generated in `init.c/initConfigDirs` end with `/`
+    ffStrbufAppendS(filename, "fastfetch/config.conf");
+
+    if (!force && ffFileExists(filename->chars, S_IFREG))
+    {
+        fprintf(stderr, "Config file exists in `%s`, use `--gen-config-force` to overwrite\n", filename->chars);
+        exit(1);
+    }
+    else
+    {
+        ffWriteFileData(filename->chars, sizeof(FASTFETCH_DATATEXT_CONFIG_USER), FASTFETCH_DATATEXT_CONFIG_USER);
+        printf("A sample config file has been written in `%s`", filename->chars);
+        exit(0);
+    }
 }
 
 static void optionParseConfigFile(FFinstance* instance, FFdata* data, const char* key, const char* value)
@@ -883,6 +911,11 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
             listAvailablePresets(instance);
             exit(0);
         }
+        else if(strcasecmp(subkey, "-config-paths") == 0)
+        {
+            listConfigPaths(instance);
+            exit(0);
+        }
         else if(strcasecmp(subkey, "-features") == 0)
         {
             ffListFeatures();
@@ -912,6 +945,10 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         fputs("`--nocache` are obsoleted. Caching functions other than image caching are removed.\n\n", stderr);
     else if(strcasecmp(key, "--load-config") == 0)
         optionParseConfigFile(instance, data, key, value);
+    else if(strcasecmp(key, "--gen-config") == 0)
+        generateConfigFile(instance, false);
+    else if(strcasecmp(key, "--gen-config-force") == 0)
+        generateConfigFile(instance, true);
     else if(strcasecmp(key, "--thread") == 0 || strcasecmp(key, "--multithreading") == 0)
         instance->config.multithreading = optionParseBoolean(value);
     else if(strcasecmp(key, "--stat") == 0)
@@ -939,6 +976,7 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         //this is usally wanted when using the none logo
         if(strcasecmp(value, "none") == 0)
         {
+            instance->config.logo.paddingTop = 0;
             instance->config.logo.paddingRight = 0;
             instance->config.logo.paddingLeft = 0;
         }
@@ -957,7 +995,9 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
                 "data-raw", FF_LOGO_TYPE_DATA_RAW,
                 "sixel", FF_LOGO_TYPE_IMAGE_SIXEL,
                 "kitty", FF_LOGO_TYPE_IMAGE_KITTY,
+                "iterm", FF_LOGO_TYPE_IMAGE_ITERM,
                 "chafa", FF_LOGO_TYPE_IMAGE_CHAFA,
+                "raw", FF_LOGO_TYPE_IMAGE_RAW,
                 NULL
             );
         }
@@ -985,6 +1025,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
             instance->config.logo.paddingLeft = padding;
             instance->config.logo.paddingRight = padding;
         }
+        else if(strcasecmp(subkey, "-padding-top") == 0)
+            instance->config.logo.paddingTop = optionParseUInt32(key, value);
         else if(strcasecmp(subkey, "-padding-left") == 0)
             instance->config.logo.paddingLeft = optionParseUInt32(key, value);
         else if(strcasecmp(subkey, "-padding-right") == 0)
@@ -1035,6 +1077,11 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     {
         optionParseString(key, value, &instance->config.logo.source);
         instance->config.logo.type = FF_LOGO_TYPE_IMAGE_ITERM;
+    }
+    else if(strcasecmp(key, "--raw") == 0)
+    {
+        optionParseString(key, value, &instance->config.logo.source);
+        instance->config.logo.type = FF_LOGO_TYPE_IMAGE_RAW;
     }
     else if(strcasecmp(key, "--chafa-fg-only") == 0)
         instance->config.logo.chafaFgOnly = optionParseBoolean(value);
@@ -1255,7 +1302,7 @@ error:
     }
 }
 
-static void parseConfigFileSystem(FFinstance* instance, FFdata* data)
+FF_UNUSED_PARAM static void parseConfigFileSystem(FFinstance* instance, FFdata* data)
 {
     parseConfigFile(instance, data, FASTFETCH_TARGET_DIR_INSTALL_SYSCONF"/fastfetch/config.conf");
 }
@@ -1265,15 +1312,18 @@ static void parseConfigFileUser(FFinstance* instance, FFdata* data)
     if(!data->loadUserConfig)
         return;
 
-    FFstrbuf* filename = ffListGet(&instance->state.configDirs, 0);
-    uint32_t filenameLength = filename->length;
+    FF_LIST_FOR_EACH(FFstrbuf, filename, instance->state.configDirs)
+    {
+        uint32_t filenameLength = filename->length;
 
-    ffStrbufAppendS(filename, "/fastfetch/config.conf");
+        ffStrbufAppendS(filename, "fastfetch/config.conf");
 
-    if(!parseConfigFile(instance, data, filename->chars))
-        ffWriteFileData(filename->chars, sizeof(FASTFETCH_DATATEXT_CONFIG_USER), FASTFETCH_DATATEXT_CONFIG_USER);
+        bool found = parseConfigFile(instance, data, filename->chars);
 
-    ffStrbufSubstrBefore(filename, filenameLength);
+        ffStrbufSubstrBefore(filename, filenameLength);
+
+        if(found) break;
+    }
 }
 
 static void parseArguments(FFinstance* instance, FFdata* data, int argc, const char** argv)
@@ -1413,7 +1463,10 @@ int main(int argc, const char** argv)
     ffStrbufInitA(&data.structure, 256);
     data.loadUserConfig = true;
 
-    parseConfigFileSystem(&instance, &data);
+    #ifndef _WIN32
+        parseConfigFileSystem(&instance, &data);
+    #endif
+
     parseConfigFileUser(&instance, &data);
     parseArguments(&instance, &data, argc, argv);
 

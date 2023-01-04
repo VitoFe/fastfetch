@@ -14,7 +14,7 @@ Fastfetch is a [neofetch](https://github.com/dylanaraps/neofetch)-like tool for 
 
 With customization and speed being two competing goals, this project actually builds two executables.
 
-* The main one being `fastfetch`, which can be very greatly configured via flags. These flags can be made persistent in `~/.config/fastfetch/config.conf`. To view the available options run `fastfetch --help`.
+* The main one being `fastfetch`, which can be very greatly configured via flags. These flags can be made persistent in `$XDG_CONFIG_HOME/fastfetch/config.conf`. To view the available options run `fastfetch --help`.
 * The second executable being built is called `flashfetch`, which is configured at compile time to eliminate any possible overhead. Configuration of it can be very easily done in [`src/flashfetch.c`](src/flashfetch.c).
 
 At the moment the performance difference is measurable, but too small to be human recognizable. But the leap will get bigger with more and more options coming, and on slow machines this might actually make a difference.
@@ -89,13 +89,31 @@ Title, Separator, OS, Host, Bios, Board, Kernel, Uptime, Processes, Packages, Sh
 
 ##### Logos
 ```
-AlmaLinux, Alpine, Android, Arch, Arco, Artix, Bedrock, CachyOS, CentOS, CRUX, Crystal, Debian, Devuan, Deepin, Endeavour, Enso, Fedora, FreeBSD, Garuda, Gentoo, KDE Neon, KISS, Kubuntu, LangitKetujuh, Linux, MacOS, Manjaro, Mint, MSYS2, NixOS, Nobara, OpenSUSE, OpenSUSE Tumbleweed, OpenSUSE LEAP, Parabola, Pop!_OS, RebornOS, RedstarOS, Rocky, Rosa, Slackware, Solus, Ubuntu, Vanilla, Void, Windows 11, Windows 8, Windows, Zorin
+AlmaLinux, Alpine, Android, Arch, Arco, Artix, Bedrock, CachyOS, CentOS, CRUX, Crystal, Debian, Devuan, Deepin, Endeavour, Enso, Fedora, FreeBSD, Garuda, Gentoo, KDE Neon, KISS, Kubuntu, LangitKetujuh, Linux, MacOS, Manjaro, Mint, MSYS2, NixOS, Nobara, OpenSUSE, OpenSUSE Tumbleweed, OpenSUSE LEAP, Parabola, Raspbian, Pop!_OS, RebornOS, RedstarOS, Rocky, Rosa, Slackware, Solus, Ubuntu, Vanilla, Void, Windows 11, Windows 8, Windows, Zorin
 ```
 * Most of the logos have a small variant. Access it by appending _small to the logo name.
 * Some logos have an old variant. Access it by appending _old to the logo name.
 * To disable the logo, use `--logo none`.
 * Get a list of all available logos with `fastfetch --print-logos`.
-* Printing images as logo is supported using Sixel / Kitty / iTerm graphics protocol or chafas image to text conversion.
+
+###### Image logo
+
+Printing images as logo is supported using Sixel / Kitty / iTerm graphics protocol or chafas image to text conversion.
+
+* Sixel: fastfetch must be built with imagemagick support to convert image to sixel format
+* Kitty: Because [kitty support png](https://sw.kovidgoyal.net/kitty/graphics-protocol/#png-data) natively, using `png` image file with both `--logo-width` and `--logo-height` being specified is recommanded to get maximum performance. Otherwise, imagemagick is required to convert image to RGBA data.
+* iTerm: [Since iTerm supports a lot of image format](https://iterm2.com/documentation-images.html), imagemagick support is not required. However, both `--logo-width` and `--logo-height` must be specified since fastfetch has no idea about the size of the image.
+* Chafa: Requires imagemagick support.
+* Raw: use a pre-converted image file so that fastfetch don't need to convert the image format on the fly.
+```shell
+# brew install libsixel
+$ img2sixel image.png -o image.sixel
+$ fastfetch --raw image.sixel --logo-width 30 --logo-height 15
+
+# wget https://iterm2.com/utilities/imgcat && chmod +x imgcat
+$ imgcat image.png > image.raw
+$ fastfetch --raw image.raw --logo-width 30 --logo-height 15
+```
 
 ##### Package managers
 ```

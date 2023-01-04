@@ -12,6 +12,8 @@
 #ifdef _WIN32
     #include <wincon.h>
     #include <locale.h>
+    #include <shlobj.h>
+    #include "util/windows/unicode.h"
 #else
     #include <signal.h>
 #endif
@@ -20,7 +22,30 @@ static void initConfigDirs(FFstate* state)
 {
     ffListInit(&state->configDirs, sizeof(FFstrbuf));
 
-    #if !(defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__))
+    #ifdef _WIN32
+
+    {
+        PWSTR pPath;
+        if(SUCCEEDED(SHGetKnownFolderPath(&FOLDERID_RoamingAppData, 0, NULL, &pPath)))
+        {
+            FFstrbuf* buffer = (FFstrbuf*) ffListAdd(&state->configDirs);
+            ffStrbufInit(buffer);
+            ffStrbufSetWS(buffer, pPath);
+            ffStrbufReplaceAllC(buffer, '\\', '/');
+            ffStrbufEnsureEndsWithC(buffer, '/');
+        }
+        CoTaskMemFree(pPath);
+    }
+
+    #elif defined(__APPLE__)
+
+    {
+        FFstrbuf* buffer = (FFstrbuf*) ffListAdd(&state->configDirs);
+        ffStrbufInitS(buffer, state->passwd->pw_dir);
+        ffStrbufAppendS(buffer, "/Library/Preferences/");
+    }
+
+    #elif !defined(__ANDROID__)
 
     const char* xdgConfigHome = getenv("XDG_CONFIG_HOME");
     if(ffStrSet(xdgConfigHome))
@@ -51,6 +76,30 @@ static void initConfigDirs(FFstate* state)
     ffStrbufAppendS(userHome, state->passwd->pw_dir);
     ffStrbufEnsureEndsWithC(userHome, '/');
     FF_ENSURE_ONLY_ONCE_IN_LIST(userHome)
+
+    #ifdef _WIN32
+
+    if(getenv("MSYSTEM") && getenv("HOME"))
+    {
+        // We are in MSYS2 / Git Bash
+
+        FFstrbuf* msysConfigHome = ffListAdd(&state->configDirs);
+        ffStrbufInitA(msysConfigHome, 64);
+        ffStrbufAppendS(msysConfigHome, getenv("HOME"));
+        ffStrbufReplaceAllC(msysConfigHome, '\\', '/');
+        ffStrbufEnsureEndsWithC(msysConfigHome, '/');
+        ffStrbufAppendS(msysConfigHome, ".config/");
+        FF_ENSURE_ONLY_ONCE_IN_LIST(msysConfigHome)
+
+        FFstrbuf* msysHome = ffListAdd(&state->configDirs);
+        ffStrbufInitA(msysHome, 64);
+        ffStrbufAppendS(msysHome, getenv("HOME"));
+        ffStrbufReplaceAllC(msysHome, '\\', '/');
+        ffStrbufEnsureEndsWithC(msysHome, '/');
+        FF_ENSURE_ONLY_ONCE_IN_LIST(msysHome)
+    }
+
+    #endif
 
     #if !(defined(_WIN32) || defined(__APPLE__) || defined(__ANDROID__))
 
@@ -87,10 +136,14 @@ static void initConfigDirs(FFstate* state)
 
     #endif
 
+    #ifndef _WIN32
+
     FFstrbuf* systemConfig = ffListAdd(&state->configDirs);
     ffStrbufInitA(systemConfig, 64);
     ffStrbufAppendS(systemConfig, FASTFETCH_TARGET_DIR_ETC"/");
     FF_ENSURE_ONLY_ONCE_IN_LIST(systemConfig)
+
+    #endif
 
     #undef FF_ENSURE_ONLY_ONCE_IN_LIST
 }
@@ -130,6 +183,7 @@ static void defaultConfig(FFinstance* instance)
         ffStrbufInit(&instance->config.logo.colors[i]);
     instance->config.logo.width = 0;
     instance->config.logo.height = 0; //preserve aspect ratio
+    instance->config.logo.paddingTop = 0;
     instance->config.logo.paddingLeft = 0;
     instance->config.logo.paddingRight = 4;
     instance->config.logo.printRemaining = true;
