@@ -10,6 +10,7 @@ Features:
 * Look for config files in `$APPDATA` ([RoamingAppData](https://superuser.com/questions/21458/why-are-there-directories-called-local-locallow-and-roaming-under-users-user#answer-21462)) (Windows)
 * Look for config files in `~/Library/Preferences` (macOS)
 * Add `--list-config-paths` option which list search paths of config files
+* Add `--list-data-paths` option which list search paths for presets and logos
 
 Logos:
 * Raspbian (@IamNoRobot, #373)
@@ -136,7 +137,7 @@ Bugfixes:
 * Don't segfault in GPU code on Intel Macs (@CarterLi, #236)
 * Don't use hardcoded size units in presets (@dr460nf1r3, #255)
 * Don't crash with some format strings (#252)
-* --logo-none keeps key color now (#264)
+* --logo none keeps key color now (#264)
 
 # 1.7.2
 

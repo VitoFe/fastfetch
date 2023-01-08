@@ -463,7 +463,7 @@ elseif(WIN32)
         src/detection/cpuUsage/cpuUsage_windows.c
         src/detection/cursor/cursor_windows.c
         src/detection/disk/disk_windows.c
-        src/detection/displayserver/displayserver_windows.c
+        src/detection/displayserver/displayserver_windows.cpp
         src/detection/font/font_windows.c
         src/detection/gpu/gpu_windows.cpp
         src/detection/host/host_windows.c
@@ -652,6 +652,7 @@ if(APPLE)
         PRIVATE "-framework Cocoa"
         PRIVATE "-framework CoreWLAN"
         PRIVATE "-weak_framework MediaRemote -F /System/Library/PrivateFrameworks"
+        PRIVATE "-weak_framework DisplayServices -F /System/Library/PrivateFrameworks"
     )
 elseif(WIN32)
     target_compile_definitions(libfastfetch PRIVATE -D_WIN32_WINNT=0x0601)
