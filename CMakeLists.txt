@@ -254,6 +254,7 @@ set(LIBFASTFETCH_SRC
     src/modules/battery.c
     src/modules/bios.c
     src/modules/board.c
+    src/modules/brightness.c
     src/modules/break.c
     src/modules/chassis.c
     src/modules/colors.c
@@ -309,6 +310,7 @@ if(LINUX)
         src/detection/battery/battery_linux.c
         src/detection/bios/bios_linux.c
         src/detection/board/board_linux.c
+        src/detection/brightness/brightness_linux.c
         src/detection/chassis/chassis_linux.c
         src/detection/cpu/cpu_linux.c
         src/detection/cpuUsage/cpuUsage_linux.c
@@ -348,6 +350,7 @@ elseif(ANDROID)
         src/detection/battery/battery_nosupport.c
         src/detection/bios/bios_nosupport.c
         src/detection/board/board_nosupport.c
+        src/detection/brightness/brightness_nosupport.c
         src/detection/chassis/chassis_nosupport.c
         src/detection/cpu/cpu_linux.c
         src/detection/cursor/cursor_nosupport.c
@@ -379,9 +382,10 @@ elseif(BSD)
         src/common/networking_linux.c
         src/common/processing_linux.c
         src/common/sysctl.c
-        src/detection/battery/battery_nosupport.c
+        src/detection/battery/battery_bsd.c
         src/detection/bios/bios_bsd.c
         src/detection/board/board_nosupport.c
+        src/detection/brightness/brightness_nosupport.c
         src/detection/chassis/chassis_nosupport.c
         src/detection/cpu/cpu_bsd.c
         src/detection/cpuUsage/cpuUsage_bsd.c
@@ -422,6 +426,7 @@ elseif(APPLE)
         src/detection/battery/battery_apple.c
         src/detection/bios/bios_apple.c
         src/detection/board/board_nosupport.c
+        src/detection/brightness/brightness_apple.c
         src/detection/chassis/chassis_nosupport.c
         src/detection/cpu/cpu_apple.c
         src/detection/cpuUsage/cpuUsage_apple.c
@@ -458,12 +463,13 @@ elseif(WIN32)
         src/detection/battery/battery_windows.c
         src/detection/bios/bios_windows.c
         src/detection/board/board_windows.c
+        src/detection/brightness/brightness_windows.cpp
         src/detection/chassis/chassis_nosupport.c
         src/detection/cpu/cpu_windows.c
         src/detection/cpuUsage/cpuUsage_windows.c
         src/detection/cursor/cursor_windows.c
         src/detection/disk/disk_windows.c
-        src/detection/displayserver/displayserver_windows.cpp
+        src/detection/displayserver/displayserver_windows.c
         src/detection/font/font_windows.c
         src/detection/gpu/gpu_windows.cpp
         src/detection/host/host_windows.c

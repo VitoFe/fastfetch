@@ -3,6 +3,7 @@
 Notable Changes:
 * fastfetch no longer creates a sample config file silently. Use `--gen-config` to generate one.
 * fastfetch now search for user config file in the order of `fastfetch --list-config-paths`
+* Unknown disks are hidden by default.
 
 Features:
 * `--logo-padding-top` option (@CarterLi, #372)
@@ -11,6 +12,10 @@ Features:
 * Look for config files in `~/Library/Preferences` (macOS)
 * Add `--list-config-paths` option which list search paths of config files
 * Add `--list-data-paths` option which list search paths for presets and logos
+* Add `Brightness` module support
+* Add `Battery` module support for FreeBSD
+* Add `--disk-show-unknown` option for Disk module
+* Detect terminal version when available
 
 Logos:
 * Raspbian (@IamNoRobot, #373)

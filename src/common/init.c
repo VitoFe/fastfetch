@@ -247,6 +247,7 @@ static void defaultConfig(FFinstance* instance)
     initModuleArg(&instance->config.host);
     initModuleArg(&instance->config.bios);
     initModuleArg(&instance->config.board);
+    initModuleArg(&instance->config.brightness);
     initModuleArg(&instance->config.chassis);
     initModuleArg(&instance->config.kernel);
     initModuleArg(&instance->config.uptime);
@@ -319,6 +320,7 @@ static void defaultConfig(FFinstance* instance)
     ffStrbufInitA(&instance->config.diskFolders, 0);
     instance->config.diskShowRemovable = true;
     instance->config.diskShowHidden = false;
+    instance->config.diskShowUnknown = false;
 
     ffStrbufInitA(&instance->config.batteryDir, 0);
 
@@ -554,9 +556,13 @@ static void destroyConfig(FFinstance* instance)
 
 static void destroyState(FFinstance* instance)
 {
-    for(uint32_t i = 0; i < instance->state.configDirs.length; ++i)
-        ffStrbufDestroy((FFstrbuf*)ffListGet(&instance->state.configDirs, i));
+    FF_LIST_FOR_EACH(FFstrbuf, configDir, instance->state.configDirs)
+        ffStrbufDestroy(configDir);
     ffListDestroy(&instance->state.configDirs);
+
+    FF_LIST_FOR_EACH(FFstrbuf, dataDir, instance->state.dataDirs)
+        ffStrbufDestroy(dataDir);
+    ffListDestroy(&instance->state.dataDirs);
 }
 
 void ffDestroyInstance(FFinstance* instance)

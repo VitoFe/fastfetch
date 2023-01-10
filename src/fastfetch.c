@@ -1146,6 +1146,7 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     else if(optionParseModuleArgs(key, value, "packages", &instance->config.packages)) {}
     else if(optionParseModuleArgs(key, value, "shell", &instance->config.shell)) {}
     else if(optionParseModuleArgs(key, value, "resolution", &instance->config.resolution)) {}
+    else if(optionParseModuleArgs(key, value, "brightness", &instance->config.brightness)) {}
     else if(optionParseModuleArgs(key, value, "de", &instance->config.de)) {}
     else if(optionParseModuleArgs(key, value, "wifi", &instance->config.wifi)) {}
     else if(optionParseModuleArgs(key, value, "wm", &instance->config.wm)) {}
@@ -1253,6 +1254,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.diskShowRemovable = optionParseBoolean(value);
     else if(strcasecmp(key, "--disk-show-hidden") == 0)
         instance->config.diskShowHidden = optionParseBoolean(value);
+    else if(strcasecmp(key, "--disk-show-unknown") == 0)
+        instance->config.diskShowUnknown = optionParseBoolean(value);
     else if(strcasecmp(key, "--battery-dir") == 0)
         optionParseString(key, value, &instance->config.batteryDir);
     else if(strcasecmp(key, "--separator-string") == 0)
@@ -1362,6 +1365,8 @@ static void parseStructureCommand(FFinstance* instance, FFdata* data, const char
         ffPrintBios(instance);
     else if(strcasecmp(line, "board") == 0)
         ffPrintBoard(instance);
+    else if(strcasecmp(line, "brightness") == 0)
+        ffPrintBrightness(instance);
     else if(strcasecmp(line, "chassis") == 0)
         ffPrintChassis(instance);
     else if(strcasecmp(line, "kernel") == 0)
