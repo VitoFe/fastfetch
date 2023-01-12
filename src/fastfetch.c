@@ -288,12 +288,13 @@ static inline void printCommandHelp(const char* command)
     }
     else if(strcasecmp(command, "gpu-format") == 0)
     {
-        constructAndPrintCommandHelpFormat("gpu", "{} {}", 5,
+        constructAndPrintCommandHelpFormat("gpu", "{} {}", 6,
             "GPU vendor",
             "GPU name",
             "GPU driver",
             "GPU temperature",
-            "GPU core count"
+            "GPU core count",
+            "GPU type"
         );
     }
     else if(strcasecmp(command, "memory-format") == 0)
@@ -1246,8 +1247,16 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.gpuTemp = optionParseBoolean(value);
     else if(strcasecmp(key, "--battery-temp") == 0)
         instance->config.batteryTemp = optionParseBoolean(value);
+    else if(strcasecmp(key, "--gpu-hide-integrated") == 0)
+        instance->config.gpuHideIntegrated = optionParseBoolean(value);
+    else if(strcasecmp(key, "--gpu-hide-discrete") == 0)
+        instance->config.gpuHideDiscrete = optionParseBoolean(value);
     else if(strcasecmp(key, "--title-fqdn") == 0)
         instance->config.titleFQDN = optionParseBoolean(value);
+    else if(strcasecmp(key, "--shell-version") == 0)
+        instance->config.shellVersion = optionParseBoolean(value);
+    else if(strcasecmp(key, "--terminal-version") == 0)
+        instance->config.terminalVersion = optionParseBoolean(value);
     else if(strcasecmp(key, "--disk-folders") == 0)
         optionParseString(key, value, &instance->config.diskFolders);
     else if(strcasecmp(key, "--disk-show-removable") == 0)
@@ -1477,6 +1486,10 @@ int main(int argc, const char** argv)
         ffPrepareWeather(&instance);
 
     ffStart(&instance);
+
+    #if defined(_WIN32) && defined(FF_ENABLE_BUFFER)
+        fflush(stdout);
+    #endif
 
     //Parse the structure and call the modules
     uint32_t startIndex = 0;
