@@ -174,9 +174,9 @@ static inline void printCommandHelp(const char* command)
             "User shell version"
         );
     }
-    else if(strcasecmp(command, "resolution-format") == 0)
+    else if(strcasecmp(command, "display-format") == 0)
     {
-        constructAndPrintCommandHelpFormat("resolution", "{}x{} @ {}Hz", 4,
+        constructAndPrintCommandHelpFormat("display", "{}x{} @ {}Hz", 4,
             "Screen width",
             "Screen height",
             "Screen refresh rate",
@@ -373,13 +373,11 @@ static inline void printCommandHelp(const char* command)
             "Connection status",
             "Connection SSID",
             "Connection mac address",
-            "Connection PHY type",
+            "Connection protocol",
             "Connection signal quality (percentage)",
             "Connection RX rate",
             "Connection TX rate",
-            "Security enabled",
-            "Security 802.1X enabled",
-            "Security algorithm"
+            "Connection Security algorithm"
         );
     }
     else if(strcasecmp(command, "player-format") == 0)
@@ -527,7 +525,7 @@ static inline void listAvailablePresetsFromFolder(FFstrbuf* folder, uint8_t inde
 
 static inline void listAvailablePresets(FFinstance* instance)
 {
-    FF_LIST_FOR_EACH(FFstrbuf, path, instance->state.dataDirs)
+    FF_LIST_FOR_EACH(FFstrbuf, path, instance->state.platform.dataDirs)
     {
         ffStrbufAppendS(path, "fastfetch/presets/");
         listAvailablePresetsFromFolder(path, 0, NULL);
@@ -536,7 +534,7 @@ static inline void listAvailablePresets(FFinstance* instance)
 
 static void listConfigPaths(FFinstance* instance)
 {
-    FF_LIST_FOR_EACH(FFstrbuf, folder, instance->state.configDirs)
+    FF_LIST_FOR_EACH(FFstrbuf, folder, instance->state.platform.configDirs)
     {
         ffStrbufAppendS(folder, "fastfetch/config.conf");
         printf("%s%s\n", folder->chars, ffFileExists(folder->chars, S_IFREG) ? " (*)" : "");
@@ -545,7 +543,7 @@ static void listConfigPaths(FFinstance* instance)
 
 static void listDataPaths(FFinstance* instance)
 {
-    FF_LIST_FOR_EACH(FFstrbuf, folder, instance->state.dataDirs)
+    FF_LIST_FOR_EACH(FFstrbuf, folder, instance->state.platform.dataDirs)
     {
         ffStrbufAppendS(folder, "fastfetch/");
         puts(folder->chars);
@@ -619,7 +617,7 @@ static bool parseConfigFile(FFinstance* instance, FFdata* data, const char* path
 
 static void generateConfigFile(FFinstance* instance, bool force)
 {
-    FFstrbuf* filename = (FFstrbuf*) ffListGet(&instance->state.configDirs, 0);
+    FFstrbuf* filename = (FFstrbuf*) ffListGet(&instance->state.platform.configDirs, 0);
     // Paths generated in `init.c/initConfigDirs` end with `/`
     ffStrbufAppendS(filename, "fastfetch/config.conf");
 
@@ -651,20 +649,23 @@ static void optionParseConfigFile(FFinstance* instance, FFdata* data, const char
 
     //Try to load as a relative path
 
-    FF_LIST_FOR_EACH(FFstrbuf, path, instance->state.dataDirs)
+    FFstrbuf absolutePath;
+    ffStrbufInitA(&absolutePath, 128);
+
+    FF_LIST_FOR_EACH(FFstrbuf, path, instance->state.platform.dataDirs)
     {
-        uint32_t pathLength = path->length;
+        //We need to copy it, because if a config file loads a config file, the value of path must be unchanged
+        ffStrbufSet(&absolutePath, path);
+        ffStrbufAppendS(&absolutePath, "fastfetch/presets/");
+        ffStrbufAppendS(&absolutePath, value);
 
-        ffStrbufAppendS(path, "fastfetch/presets/");
-        ffStrbufAppendS(path, value);
-
-        bool success = parseConfigFile(instance, data, path->chars);
-
-        ffStrbufSubstrBefore(path, pathLength);
+        bool success = parseConfigFile(instance, data, absolutePath.chars);
 
         if(success)
             return;
     }
+
+    ffStrbufDestroy(&absolutePath);
 
     //File not found
 
@@ -1146,7 +1147,7 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     else if(optionParseModuleArgs(key, value, "processes", &instance->config.processes)) {}
     else if(optionParseModuleArgs(key, value, "packages", &instance->config.packages)) {}
     else if(optionParseModuleArgs(key, value, "shell", &instance->config.shell)) {}
-    else if(optionParseModuleArgs(key, value, "resolution", &instance->config.resolution)) {}
+    else if(optionParseModuleArgs(key, value, "display", &instance->config.display)) {}
     else if(optionParseModuleArgs(key, value, "brightness", &instance->config.brightness)) {}
     else if(optionParseModuleArgs(key, value, "de", &instance->config.de)) {}
     else if(optionParseModuleArgs(key, value, "wifi", &instance->config.wifi)) {}
@@ -1233,6 +1234,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
             optionParseString(key, value, &instance->config.libcJSON);
         else if(strcasecmp(subkey, "-wlanapi") == 0)
             optionParseString(key, value, &instance->config.libwlanapi);
+        else if(strcasecmp(subkey, "-nm") == 0)
+            optionParseString(key, value, &instance->config.libnm);
         else
             goto error;
     }
@@ -1263,6 +1266,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.diskShowRemovable = optionParseBoolean(value);
     else if(strcasecmp(key, "--disk-show-hidden") == 0)
         instance->config.diskShowHidden = optionParseBoolean(value);
+    else if(strcasecmp(key, "--disk-show-subvolumes") == 0)
+        instance->config.diskShowSubvolumes = optionParseBoolean(value);
     else if(strcasecmp(key, "--disk-show-unknown") == 0)
         instance->config.diskShowUnknown = optionParseBoolean(value);
     else if(strcasecmp(key, "--battery-dir") == 0)
@@ -1301,6 +1306,20 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     }
     else if(strcasecmp(key, "--percent-type") == 0)
         instance->config.percentType = optionParseUInt32(key, value);
+    else if(strcasecmp(key, "--command-shell") == 0)
+        optionParseString(key, value, &instance->config.commandShell);
+    else if(strcasecmp(key, "--command-key") == 0)
+    {
+        FFstrbuf* result = (FFstrbuf*) ffListAdd(&instance->config.commandKeys);
+        ffStrbufInit(result);
+        optionParseString(key, value, result);
+    }
+    else if(strcasecmp(key, "--command-text") == 0)
+    {
+        FFstrbuf* result = (FFstrbuf*) ffListAdd(&instance->config.commandTexts);
+        ffStrbufInit(result);
+        optionParseString(key, value, result);
+    }
 
     //////////////////
     //Unknown option//
@@ -1316,12 +1335,12 @@ error:
 
 static void parseConfigFiles(FFinstance* instance, FFdata* data)
 {
-    for(uint32_t i = instance->state.configDirs.length; i > 0; --i)
+    for(uint32_t i = instance->state.platform.configDirs.length; i > 0; --i)
     {
         if(!data->loadUserConfig)
             return;
 
-        FFstrbuf* dir = ffListGet(&instance->state.configDirs, i - 1);
+        FFstrbuf* dir = ffListGet(&instance->state.platform.configDirs, i - 1);
         uint32_t dirLength = dir->length;
 
         ffStrbufAppendS(dir, "fastfetch/config.conf");
@@ -1388,8 +1407,8 @@ static void parseStructureCommand(FFinstance* instance, FFdata* data, const char
         ffPrintPackages(instance);
     else if(strcasecmp(line, "shell") == 0)
         ffPrintShell(instance);
-    else if(strcasecmp(line, "resolution") == 0)
-        ffPrintResolution(instance);
+    else if(strcasecmp(line, "display") == 0)
+        ffPrintDisplay(instance);
     else if(strcasecmp(line, "desktopenvironment") == 0 || strcasecmp(line, "de") == 0)
         ffPrintDesktopEnvironment(instance);
     else if(strcasecmp(line, "windowmanager") == 0 || strcasecmp(line, "wm") == 0)
@@ -1454,6 +1473,8 @@ static void parseStructureCommand(FFinstance* instance, FFdata* data, const char
         ffPrintOpenCL(instance);
     else if(strcasecmp(line, "users") == 0)
         ffPrintUsers(instance);
+    else if(strcasecmp(line, "command") == 0)
+        ffPrintCommand(instance);
     else
         ffPrintErrorString(instance, line, 0, NULL, NULL, "<no implementation provided>");
 }

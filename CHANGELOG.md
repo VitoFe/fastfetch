@@ -4,6 +4,7 @@ Notable Changes:
 * fastfetch no longer creates a sample config file silently. Use `--gen-config` to generate one.
 * fastfetch now search for user config file in the order of `fastfetch --list-config-paths`
 * Unknown disks are hidden by default.
+* `Resolution` module is renamed to `Display`. (#393)
 
 Features:
 * `--logo-padding-top` option (@CarterLi, #372)
@@ -15,20 +16,26 @@ Features:
 * Add `Brightness` module support
 * Add `Battery` module support for FreeBSD
 * Add `--disk-show-unknown` option for Disk module
+* Add `--disk-show-subvolumes` option for Disk module
 * Add `--gpu-hide-integrated` option (#379)
 * Add `--gpu-hide-discrete` option (#379)
 * Detect terminal version when available
 * Support `WezTerm` terminal font detection (requires [`wezterm` executable](https://wezfurlong.org/wezterm/cli/general.html) being available)
 * Add `--shell-version` and `--terminal-version` options to disable shell / terminal version detection
 * Enhance `--percent-type` to allow hiding other texts (#387)
+* Add Wifi module support for Linux
+* Detect scaled resolutions (Windows, macOS)
+* Optimise font module printing (Windows)
+* Detect pacman package count inside MSYS2 environment (Windows)
 
 Logos:
 * Raspbian (@IamNoRobot, #373)
 
 Bugfixes:
 * `--logo-type` now does accept `iterm` too (@CarterLi, #374)
-* Fix mintty terminal font detection
+* Fix mintty terminal font detection (Windows)
 * Fix bug that line buffering doesn't work properly (Windows)
+* Fix rpm package count detection (Linux)
 
 Other:
 * Fixed a Typo in iterm error message (@jessebot, #376)

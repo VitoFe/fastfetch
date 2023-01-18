@@ -8,16 +8,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifndef _WIN32
-    #include <pwd.h>
-    #include <sys/utsname.h>
-#else
-    #include "util/windows/pwd.h"
-    #include "util/windows/utsname.h"
-#endif
-
 #include "util/FFstrbuf.h"
 #include "util/FFlist.h"
+#include "util/platform/FFPlatform.h"
 
 static inline void ffUnused(int dummy, ...) { (void) dummy; }
 #define FF_UNUSED(...) ffUnused(0, __VA_ARGS__);
@@ -114,7 +107,7 @@ typedef struct FFconfig
     FFModuleArgs processes;
     FFModuleArgs packages;
     FFModuleArgs shell;
-    FFModuleArgs resolution;
+    FFModuleArgs display;
     FFModuleArgs de;
     FFModuleArgs wifi;
     FFModuleArgs wm;
@@ -170,6 +163,7 @@ typedef struct FFconfig
     FFstrbuf libcJSON;
     FFstrbuf libfreetype;
     FFstrbuf libwlanapi;
+    FFstrbuf libnm;
 
     bool cpuTemp;
     bool gpuTemp;
@@ -187,6 +181,7 @@ typedef struct FFconfig
     bool diskShowRemovable;
     bool diskShowHidden;
     bool diskShowUnknown;
+    bool diskShowSubvolumes;
 
     FFstrbuf batteryDir;
 
@@ -208,6 +203,10 @@ typedef struct FFconfig
     FFstrbuf playerName;
 
     uint32_t percentType;
+
+    FFstrbuf commandShell;
+    FFlist commandKeys;
+    FFlist commandTexts;
 } FFconfig;
 
 typedef struct FFstate
@@ -216,11 +215,7 @@ typedef struct FFstate
     uint32_t logoHeight;
     uint32_t keysHeight;
 
-    struct passwd* passwd;
-    struct utsname utsname;
-
-    FFlist configDirs; // List of FFstrbuf, trailing slash included
-    FFlist dataDirs;   // List of FFstrbuf, trailing slash included
+    FFPlatform platform;
 } FFstate;
 
 typedef struct FFinstance
@@ -280,7 +275,7 @@ void ffPrintUptime(FFinstance* instance);
 void ffPrintProcesses(FFinstance* instance);
 void ffPrintPackages(FFinstance* instance);
 void ffPrintShell(FFinstance* instance);
-void ffPrintResolution(FFinstance* instance);
+void ffPrintDisplay(FFinstance* instance);
 void ffPrintBrightness(FFinstance* instance);
 void ffPrintDesktopEnvironment(FFinstance* instance);
 void ffPrintWM(FFinstance* instance);
@@ -314,5 +309,6 @@ void ffPrintVulkan(FFinstance* instance);
 void ffPrintOpenGL(FFinstance* instance);
 void ffPrintOpenCL(FFinstance* instance);
 void ffPrintUsers(FFinstance* instance);
+void ffPrintCommand(FFinstance* instance);
 
 #endif
