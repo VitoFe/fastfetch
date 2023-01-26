@@ -10,6 +10,8 @@ Fastfetch is a [neofetch](https://github.com/dylanaraps/neofetch)-like tool for 
 <img src="screenshots/example3.png" width="48%" align="top" />
 <img src="screenshots/example5.png" height="15%" align="top" />
 
+There are [screenshots on different platforms](https://github.com/LinusDierheimer/fastfetch/wiki)
+
 ## Customization
 
 With customization and speed being two competing goals, this project actually builds two executables.
@@ -43,7 +45,7 @@ The following libraries are used if present at runtime:
 * [`libmagickcore` (ImageMagick)](https://www.imagemagick.org/): Images in terminal using sixel or kitty graphics protocol.
 * [`libchafa`](https://github.com/hpjansson/chafa): Image output as ascii art.
 * [`libZ`](https://www.zlib.net/): Faster image output when using kitty graphics protocol.
-* [`libDBus`](https://www.freedesktop.org/wiki/Software/dbus): Needed for detecting current media player and song.
+* [`libDBus`](https://www.freedesktop.org/wiki/Software/dbus): Bluetooth, Player & Media detection.
 * [`libEGL`](https://www.khronos.org/registry/EGL/),
     [`libGLX`](https://dri.freedesktop.org/wiki/GLX/),
     [`libOSMesa`](https://docs.mesa3d.org/osmesa.html): At least one of them is needed by the OpenGL module for gl context creation.
@@ -52,7 +54,8 @@ The following libraries are used if present at runtime:
 * [`libsqlite3`](https://www.sqlite.org/index.html): Needed for pkg & rpm package count.
 * [`librpm`](http://rpm.org/): Slower fallback for rpm package count. Needed on openSUSE.
 * [`libcJSON`](https://github.com/DaveGamble/cJSON): Needed for Windows Terminal font ( WSL ).
-* [`libnm`](https://networkmanager.dev/docs/libnm/latest/): Used for Wifi detection on Linux.
+* [`libnm`](https://networkmanager.dev/docs/libnm/latest/): Used for Wifi detection.
+* [`libalsa`](https://www.alsa-project.org/alsa-doc/alsa-lib/): Used for Sound detection.
 
 ### macOS
 
@@ -79,13 +82,14 @@ For the image logo, only chafa is supported due to [the design flaw of ConPTY](h
 
 * [`freetype`](https://www.freetype.org/): Used for Termux font detection. [`freetype`](https://github.com/termux/termux-packages/tree/master/packages/freetype)
 * [`libvulkan`](https://www.vulkan.org/): Vulkan module, also used for GPU detection. Usually has been provided by Android system. [`vulkan-loader-android`](https://github.com/termux/termux-packages/tree/master/packages/vulkan-loader-android) [`vulkan-headers`](https://github.com/termux/termux-packages/tree/master/packages/vulkan-headers)
+* [`termux-api`](https://github.com/termux/termux-api-package): Used for Wifi / Battery detection. Read [the official doc](https://wiki.termux.com/wiki/Termux:API) for detail or if you hang on these modules (IMPORTANT). [`termux-api`](https://github.com/termux/termux-packages/tree/master/packages/termux-api)
 
 ## Support status
 All categories not listed here should work without needing a specific implementation.
 
 ##### Available Modules
 ```
-Battery, Bios, Board, Break, Brightness, Colors, Command, CPU, CPUUsage, Cursor, Custom, Date, DateTime, DE, Disk, Display, Font, GPU, Host, Icons, Kernel, Locale, LocalIP, Media, Memory, OpenCL, OpenGL, Packages, Player, Power Adapter, Processes, PublicIP, Separator OS, Shell, Swap, Terminal, Terminal Font, Theme, Time, Title, Uptime, Vulkan, Wifi, WM, WMTheme
+Battery, Bios, Bluetooth, Board, Break, Brightness, Colors, Command, CPU, CPUUsage, Cursor, Custom, Date, DateTime, DE, Disk, Display, Font, GPU, Host, Icons, Kernel, Locale, LocalIP, Media, Memory, OpenCL, OpenGL, Packages, Player, Power Adapter, Processes, PublicIP, Separator, OS, Shell, Sound, Swap, Terminal, Terminal Font, Theme, Time, Title, Uptime, Vulkan, Wifi, WM, WMTheme
 ```
 
 ##### Builtin logos

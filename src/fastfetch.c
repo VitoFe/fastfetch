@@ -448,6 +448,15 @@ static inline void printCommandHelp(const char* command)
             "vendor"
         );
     }
+    else if(strcasecmp(command, "bluetooth-format") == 0)
+    {
+        constructAndPrintCommandHelpFormat("bluetooth", "{1} (4%)", 4,
+            "Name",
+            "Address",
+            "Type",
+            "Battery percentage"
+        );
+    }
     else
         fprintf(stderr, "No specific help for command %s provided\n", command);
 }
@@ -629,7 +638,7 @@ static void generateConfigFile(FFinstance* instance, bool force)
     else
     {
         ffWriteFileData(filename->chars, sizeof(FASTFETCH_DATATEXT_CONFIG_USER), FASTFETCH_DATATEXT_CONFIG_USER);
-        printf("A sample config file has been written in `%s`", filename->chars);
+        printf("A sample config file has been written in `%s`\n", filename->chars);
         exit(0);
     }
 }
@@ -859,7 +868,37 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     }
     else if(strcasecmp(key, "-v") == 0 || strcasecmp(key, "--version") == 0)
     {
-        puts("fastfetch "FASTFETCH_PROJECT_VERSION""FASTFETCH_PROJECT_VERSION_TWEAK);
+        #ifndef NDEBUG
+            #define FF_BUILD_TYPE "-debug"
+        #else
+            #define FF_BUILD_TYPE
+        #endif
+
+        #if defined(__x86_64__) || defined(__x86_64) || defined(__amd64__) || defined(__amd64)
+            #define FF_ARCHITECTURE "x86_64"
+        #elif defined(__i386__) || defined(__i386) || defined(__i486__) || defined(__i486) || defined(__i586__) || defined(__i586) || defined(__i686__) || defined(__i686)
+            #define FF_ARCHITECTURE "i386"
+        #elif defined(__aarch64__)
+            #define FF_ARCHITECTURE "aarch64"
+        #elif defined(__arm__)
+            #define FF_ARCHITECTURE "arm"
+        #elif defined(__mips__)
+            #define FF_ARCHITECTURE "mips"
+        #elif defined(__powerpc__) || defined(__powerpc)
+            #define FF_ARCHITECTURE "powerpc"
+        #elif defined(__riscv__) || defined(__riscv)
+            #define FF_ARCHITECTURE "riscv"
+        #elif defined(__s390x__)
+            #define FF_ARCHITECTURE "s390x"
+        #else
+            #define FF_ARCHITECTURE "unknown"
+        #endif
+
+        puts("fastfetch " FASTFETCH_PROJECT_VERSION FASTFETCH_PROJECT_VERSION_TWEAK FF_BUILD_TYPE " (" FF_ARCHITECTURE ")");
+
+        #undef FF_ARCHITECTURE
+        #undef FF_BUILD_TYPE
+
         exit(0);
     }
     else if(strcasecmp(key, "--version-raw") == 0)
@@ -1180,6 +1219,8 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     else if(optionParseModuleArgs(key, value, "opengl", &instance->config.openGL)) {}
     else if(optionParseModuleArgs(key, value, "opencl", &instance->config.openCL)) {}
     else if(optionParseModuleArgs(key, value, "users", &instance->config.users)) {}
+    else if(optionParseModuleArgs(key, value, "bluetooth", &instance->config.bluetooth)) {}
+    else if(optionParseModuleArgs(key, value, "sound", &instance->config.sound)) {}
 
     ///////////////////
     //Library options//
@@ -1270,6 +1311,10 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.diskShowSubvolumes = optionParseBoolean(value);
     else if(strcasecmp(key, "--disk-show-unknown") == 0)
         instance->config.diskShowUnknown = optionParseBoolean(value);
+    else if(strcasecmp(key, "--bluetooth-show-disconnected") == 0)
+        instance->config.bluetoothShowDisconnected = optionParseBoolean(value);
+    else if(strcasecmp(key, "--sound-show-all") == 0)
+        instance->config.soundShowAll = optionParseBoolean(value);
     else if(strcasecmp(key, "--battery-dir") == 0)
         optionParseString(key, value, &instance->config.batteryDir);
     else if(strcasecmp(key, "--separator-string") == 0)
@@ -1475,6 +1520,10 @@ static void parseStructureCommand(FFinstance* instance, FFdata* data, const char
         ffPrintUsers(instance);
     else if(strcasecmp(line, "command") == 0)
         ffPrintCommand(instance);
+    else if(strcasecmp(line, "bluetooth") == 0)
+        ffPrintBluetooth(instance);
+    else if(strcasecmp(line, "sound") == 0)
+        ffPrintSound(instance);
     else
         ffPrintErrorString(instance, line, 0, NULL, NULL, "<no implementation provided>");
 }
@@ -1490,7 +1539,8 @@ int main(int argc, const char** argv)
     ffStrbufInitA(&data.structure, 256);
     data.loadUserConfig = true;
 
-    parseConfigFiles(&instance, &data);
+    if(!getenv("NO_CONFIG"))
+        parseConfigFiles(&instance, &data);
     parseArguments(&instance, &data, argc, argv);
 
     //If we don't have a custom structure, use the default one

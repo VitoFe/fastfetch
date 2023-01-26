@@ -1,5 +1,19 @@
 # dev
 
+Features:
+* Bluetooth module
+* Sound module
+
+# 1.9.1
+
+Bugfixes:
+
+* Fix builds on s390x (@jonathanspw, #402)
+* Fix zero refresh rate on some monitors (macOS)
+* Fix default formatting of Wifi module
+
+# 1.9.0
+
 Notable Changes:
 * fastfetch no longer creates a sample config file silently. Use `--gen-config` to generate one.
 * fastfetch now search for user config file in the order of `fastfetch --list-config-paths`
@@ -27,6 +41,8 @@ Features:
 * Detect scaled resolutions (Windows, macOS)
 * Optimise font module printing (Windows)
 * Detect pacman package count inside MSYS2 environment (Windows)
+* Add Wifi / Battery module support for Android
+* Disk name support for Linux
 
 Logos:
 * Raspbian (@IamNoRobot, #373)
@@ -36,6 +52,7 @@ Bugfixes:
 * Fix mintty terminal font detection (Windows)
 * Fix bug that line buffering doesn't work properly (Windows)
 * Fix rpm package count detection (Linux)
+* Fix cpu temp detection (Linux)
 
 Other:
 * Fixed a Typo in iterm error message (@jessebot, #376)

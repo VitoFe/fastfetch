@@ -42,6 +42,7 @@ __fastfetch_complete_help()
         "vulkan-format"
         "opengl-format"
         "opencl-format"
+        "bluetooth-format"
     )
     COMPREPLY=($(compgen -W "${__ff_helps[*]}" -- "$CURRENT_WORD"))
 }
@@ -198,6 +199,7 @@ __fastfetch_completion()
         "--gpu-hide-integrated"
         "--gpu-hide-discrete"
         "--disk-show-unknown"
+        "--bluetooth-show-disconnected"
     )
 
     local FF_OPTIONS_STRING=(
@@ -349,6 +351,9 @@ __fastfetch_completion()
         "--users-key"
         "--users-format"
         "--users-error"
+        "--bluetooth-key"
+        "--bluetooth-format"
+        "--bluetooth-error"
     )
 
     local FF_OPTIONS_PATH=(
@@ -374,6 +379,7 @@ __fastfetch_completion()
         "--lib-glx"
         "--lib-osmesa"
         "--lib-opencl"
+        "--lib-alsa"
         "--battery-dir"
     )
 

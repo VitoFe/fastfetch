@@ -247,6 +247,18 @@
 # Default is "/:/home" ("C:\\;D:\\ ..." on Windows).
 #--disk-folders /:/home
 
+# Bluetooth show disconnected option
+# Sets if disconnected bluetooth devices should be printed
+# Must be either true or false
+# Default is false.
+#--bluetooth-show-disconnected false
+
+# Sound show all option
+# Sets if all sound devices should be printed
+# Must be either true or false
+# Default is false ( only main device should be printed ).
+#--sound-show-all false
+
 # Percentage output type option
 # Applies to all modules that prints percentage values. Currently memory, swap, disk, battery and CPU usage are supported.
 # Only works with default format ( without --module-format option ).
@@ -295,6 +307,8 @@
 #--opengl-key OpenGL
 #--opencl-key OpenCL
 #--users-key Users
+#--bluetooth-key Bluetooth
+#--sound-key Sound
 
 # Format options:
 # Sets the format string for module values.
@@ -339,6 +353,8 @@
 #--opengl-format
 #--opencl-format
 #--users-format
+#--bluetooth-format
+#--sound-format
 
 # Error options:
 # Sets the format string to use if an error occured
@@ -383,6 +399,8 @@
 #--opengl-error
 #--opencl-error
 #--users-error
+#--bluetooth-error
+#--sound-error
 
 # Library options:
 # Sets an user specific path to a library to load.
@@ -408,4 +426,5 @@
 #--lib-osmesa /usr/lib/libOSMesa.so
 #--lib-opencl /usr/lib/libOpenCL.so
 #--lib-cjson /usr/lib/libcjson.so
+#--lib-cjson /usr/lib/libasound.so
 #--lib-freetype /data/data/com.termux/files/usr/lib

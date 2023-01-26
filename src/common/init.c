@@ -115,6 +115,8 @@ static void defaultConfig(FFinstance* instance)
     initModuleArg(&instance->config.openGL);
     initModuleArg(&instance->config.openCL);
     initModuleArg(&instance->config.users);
+    initModuleArg(&instance->config.bluetooth);
+    initModuleArg(&instance->config.sound);
 
     ffStrbufInitA(&instance->config.libPCI, 0);
     ffStrbufInitA(&instance->config.libVulkan, 0);
@@ -138,6 +140,7 @@ static void defaultConfig(FFinstance* instance)
     ffStrbufInitA(&instance->config.libOpenCL, 0);
     ffStrbufInitA(&instance->config.libcJSON, 0);
     ffStrbufInitA(&instance->config.libfreetype, 0);
+    ffStrbufInit(&instance->config.libAlsa);
     ffStrbufInit(&instance->config.libwlanapi);
     ffStrbufInit(&instance->config.libnm);
 
@@ -158,6 +161,10 @@ static void defaultConfig(FFinstance* instance)
     instance->config.diskShowHidden = false;
     instance->config.diskShowUnknown = false;
     instance->config.diskShowSubvolumes = false;
+
+    instance->config.bluetoothShowDisconnected = false;
+
+    instance->config.soundShowAll = false;
 
     ffStrbufInitA(&instance->config.batteryDir, 0);
 
@@ -377,6 +384,7 @@ static void destroyConfig(FFinstance* instance)
     destroyModuleArg(&instance->config.openGL);
     destroyModuleArg(&instance->config.openCL);
     destroyModuleArg(&instance->config.users);
+    destroyModuleArg(&instance->config.bluetooth);
 
     ffStrbufDestroy(&instance->config.libPCI);
     ffStrbufDestroy(&instance->config.libVulkan);
@@ -400,6 +408,7 @@ static void destroyConfig(FFinstance* instance)
     ffStrbufDestroy(&instance->config.libOpenCL);
     ffStrbufDestroy(&instance->config.libcJSON);
     ffStrbufDestroy(&instance->config.libfreetype);
+    ffStrbufDestroy(&instance->config.libAlsa);
     ffStrbufDestroy(&instance->config.libwlanapi);
     ffStrbufDestroy(&instance->config.libnm);
 
@@ -504,6 +513,9 @@ void ffListFeatures()
         #endif
         #ifdef FF_HAVE_FREETYPE
             "freetype\n"
+        #endif
+        #ifdef FF_HAVE_ALSA
+            "alsa-lib\n"
         #endif
         #ifdef FF_HAVE_LIBNM
             "libnm\n"

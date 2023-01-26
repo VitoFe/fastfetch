@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12.0) # target_link_libraries with OBJECT libs & project homepage url
 
 project(fastfetch
-    VERSION 1.8.2
+    VERSION 1.9.1
     LANGUAGES C
     DESCRIPTION "Fast system information tool"
     HOMEPAGE_URL "https://github.com/LinusDierheimer/fastfetch"
@@ -70,6 +70,7 @@ cmake_dependent_option(ENABLE_OPENCL "Enable opencl" ON "LINUX OR BSD OR WIN32" 
 cmake_dependent_option(ENABLE_LIBCJSON "Enable libcjson" ON "LINUX OR WIN32" OFF)
 cmake_dependent_option(ENABLE_LIBNM "Enable libnm" ON "LINUX" OFF)
 cmake_dependent_option(ENABLE_FREETYPE "Enable freetype" ON "ANDROID" OFF)
+cmake_dependent_option(ENABLE_ALSA "Enable alsa-lib" ON "LINUX" OFF)
 cmake_dependent_option(ENABLE_THREADS "Enable multithreading" ON "Threads_FOUND AND NOT ANDROID" OFF)
 cmake_dependent_option(ENABLE_BUFFER "Enable stdout buffer" ON "LINUX OR APPLE OR BSD OR WIN32 OR ANDROID" OFF)
 cmake_dependent_option(USE_WIN_NTAPI "Allow using internal NTAPI" ON "WIN32" OFF)
@@ -232,6 +233,7 @@ set(LIBFASTFETCH_SRC
     src/common/printing.c
     src/common/properties.c
     src/common/settings.c
+    src/detection/bluetooth/bluetooth.c
     src/detection/cpu/cpu.c
     src/detection/cpuUsage/cpuUsage.c
     src/detection/datetime.c
@@ -254,6 +256,7 @@ set(LIBFASTFETCH_SRC
     src/logo/logo.c
     src/modules/battery.c
     src/modules/bios.c
+    src/modules/bluetooth.c
     src/modules/board.c
     src/modules/brightness.c
     src/modules/break.c
@@ -287,6 +290,7 @@ set(LIBFASTFETCH_SRC
     src/modules/display.c
     src/modules/separator.c
     src/modules/shell.c
+    src/modules/sound.c
     src/modules/media.c
     src/modules/terminal.c
     src/modules/terminalfont.c
@@ -308,6 +312,7 @@ set(LIBFASTFETCH_SRC
 
 if(LINUX)
     list(APPEND LIBFASTFETCH_SRC
+        src/common/dbus.c
         src/common/networking_linux.c
         src/common/processing_linux.c
         src/detection/battery/battery_linux.c
@@ -318,6 +323,7 @@ if(LINUX)
         src/detection/cpu/cpu_linux.c
         src/detection/cpuUsage/cpuUsage_linux.c
         src/detection/cursor/cursor_linux.c
+        src/detection/bluetooth/bluetooth_linux.c
         src/detection/disk/disk_linux.c
         src/detection/displayserver/linux/displayserver_linux.c
         src/detection/displayserver/linux/wayland.c
@@ -337,6 +343,7 @@ if(LINUX)
         src/detection/poweradapter/poweradapter_nosupport.c
         src/detection/processes/processes_linux.c
         src/detection/qt.c
+        src/detection/sound/sound_linux.c
         src/detection/swap/swap_linux.c
         src/detection/temps/temps_linux.c
         src/detection/terminalfont/terminalfont_linux.c
@@ -351,8 +358,9 @@ elseif(ANDROID)
     list(APPEND LIBFASTFETCH_SRC
         src/common/networking_linux.c
         src/common/processing_linux.c
-        src/detection/battery/battery_nosupport.c
+        src/detection/battery/battery_android.c
         src/detection/bios/bios_nosupport.c
+        src/detection/bluetooth/bluetooth_nosupport.c
         src/detection/board/board_nosupport.c
         src/detection/brightness/brightness_nosupport.c
         src/detection/chassis/chassis_nosupport.c
@@ -372,23 +380,26 @@ elseif(ANDROID)
         src/detection/packages/packages_linux.c
         src/detection/poweradapter/poweradapter_nosupport.c
         src/detection/processes/processes_linux.c
+        src/detection/sound/sound_nosupport.c
         src/detection/swap/swap_linux.c
         src/detection/temps/temps_linux.c
         src/detection/terminalfont/terminalfont_android.c
         src/detection/terminalshell/terminalshell_linux.c
         src/detection/uptime/uptime_linux.c
         src/detection/users/users_linux.c
-        src/detection/wifi/wifi_nosupport.c
+        src/detection/wifi/wifi_android.c
         src/detection/wmtheme/wmtheme_nosupport.c
         src/util/platform/FFPlatform_unix.c
     )
 elseif(BSD)
     list(APPEND LIBFASTFETCH_SRC
+        src/common/dbus.c
         src/common/networking_linux.c
         src/common/processing_linux.c
         src/common/sysctl.c
         src/detection/battery/battery_bsd.c
         src/detection/bios/bios_bsd.c
+        src/detection/bluetooth/bluetooth_linux.c
         src/detection/board/board_nosupport.c
         src/detection/brightness/brightness_nosupport.c
         src/detection/chassis/chassis_nosupport.c
@@ -414,6 +425,7 @@ elseif(BSD)
         src/detection/poweradapter/poweradapter_nosupport.c
         src/detection/processes/processes_bsd.c
         src/detection/qt.c
+        src/detection/sound/sound_nosupport.c
         src/detection/swap/swap_bsd.c
         src/detection/temps/temps_linux.c
         src/detection/terminalfont/terminalfont_linux.c
@@ -431,6 +443,7 @@ elseif(APPLE)
         src/common/sysctl.c
         src/detection/battery/battery_apple.c
         src/detection/bios/bios_apple.c
+        src/detection/bluetooth/bluetooth_apple.m
         src/detection/board/board_nosupport.c
         src/detection/brightness/brightness_apple.c
         src/detection/chassis/chassis_nosupport.c
@@ -451,6 +464,7 @@ elseif(APPLE)
         src/detection/packages/packages_apple.c
         src/detection/poweradapter/poweradapter_apple.c
         src/detection/processes/processes_bsd.c
+        src/detection/sound/sound_apple.c
         src/detection/swap/swap_apple.c
         src/detection/temps/temps_apple.c
         src/detection/terminalfont/terminalfont_apple.m
@@ -469,6 +483,7 @@ elseif(WIN32)
         src/common/processing_windows.c
         src/detection/battery/battery_windows.c
         src/detection/bios/bios_windows.c
+        src/detection/bluetooth/bluetooth_windows.c
         src/detection/board/board_windows.c
         src/detection/brightness/brightness_windows.cpp
         src/detection/chassis/chassis_nosupport.c
@@ -488,6 +503,7 @@ elseif(WIN32)
         src/detection/packages/packages_windows.c
         src/detection/poweradapter/poweradapter_nosupport.c
         src/detection/processes/processes_windows.cpp
+        src/detection/sound/sound_windows.cpp
         src/detection/swap/swap_windows.cpp
         src/detection/terminalfont/terminalfont_windows.c
         src/detection/terminalshell/terminalshell_windows.cpp
@@ -496,6 +512,7 @@ elseif(WIN32)
         src/detection/wifi/wifi_windows.c
         src/detection/wmtheme/wmtheme_windows.c
         src/util/windows/getline.c
+        src/util/windows/com.cpp
         src/util/windows/registry.c
         src/util/windows/unicode.c
         src/util/windows/wmi.cpp
@@ -646,6 +663,10 @@ ff_lib_enable(FREETYPE
     "freetype2"
     "FreeType2"
 )
+ff_lib_enable(ALSA
+    "alsa"
+    "ALSA"
+)
 
 if(ENABLE_THREADS)
     target_compile_definitions(libfastfetch PRIVATE FF_HAVE_THREADS)
@@ -666,19 +687,22 @@ if(APPLE)
         PRIVATE "-framework OpenCL"
         PRIVATE "-framework Cocoa"
         PRIVATE "-framework CoreWLAN"
+        PRIVATE "-framework CoreAudio"
+        PRIVATE "-framework CoreVideo"
+        PRIVATE "-framework IOBluetooth"
         PRIVATE "-weak_framework MediaRemote -F /System/Library/PrivateFrameworks"
         PRIVATE "-weak_framework DisplayServices -F /System/Library/PrivateFrameworks"
     )
 elseif(WIN32)
     target_compile_definitions(libfastfetch PRIVATE -D_WIN32_WINNT=0x0601)
     target_link_libraries(libfastfetch
+        PRIVATE "bthprops"
         PRIVATE "dwmapi"
         PRIVATE "gdi32"
         PRIVATE "iphlpapi"
         PRIVATE "ole32"
         PRIVATE "oleaut32"
         PRIVATE "opengl32"
-        PRIVATE "wbemuuid"
         PRIVATE "ws2_32"
         PRIVATE "ntdll"
         PRIVATE "version"

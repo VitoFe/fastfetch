@@ -139,6 +139,8 @@ typedef struct FFconfig
     FFModuleArgs openGL;
     FFModuleArgs openCL;
     FFModuleArgs users;
+    FFModuleArgs bluetooth;
+    FFModuleArgs sound;
 
     FFstrbuf libPCI;
     FFstrbuf libVulkan;
@@ -162,6 +164,7 @@ typedef struct FFconfig
     FFstrbuf libOpenCL;
     FFstrbuf libcJSON;
     FFstrbuf libfreetype;
+    FFstrbuf libAlsa;
     FFstrbuf libwlanapi;
     FFstrbuf libnm;
 
@@ -183,6 +186,8 @@ typedef struct FFconfig
     bool diskShowUnknown;
     bool diskShowSubvolumes;
 
+    bool bluetoothShowDisconnected;
+
     FFstrbuf batteryDir;
 
     FFstrbuf separatorString;
@@ -197,6 +202,8 @@ typedef struct FFconfig
 
     FFstrbuf weatherOutputFormat;
     uint32_t weatherTimeout;
+
+    bool soundShowAll;
 
     FFstrbuf osFile;
 
@@ -310,5 +317,7 @@ void ffPrintOpenGL(FFinstance* instance);
 void ffPrintOpenCL(FFinstance* instance);
 void ffPrintUsers(FFinstance* instance);
 void ffPrintCommand(FFinstance* instance);
+void ffPrintBluetooth(FFinstance* instance);
+void ffPrintSound(FFinstance* instance);
 
 #endif
