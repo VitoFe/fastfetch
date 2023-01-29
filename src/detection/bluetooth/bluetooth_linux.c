@@ -8,36 +8,68 @@ array [                                                     //root
     dict entry(                                             //object
         object path "/org/bluez/hci0/dev_03_21_8B_91_16_4D"
         array [
-            dict entry(                                     //property
-                string "org.bluez.Device1"
-                array [
-                    dict entry(
-                        string "Address"
-                        variant string "03:21:8B:91:16:4D"
-                    )
-                    dict entry(
-                        string "Name"
-                        variant string "JBL TUNE160BT"
-                    )
-                    dict entry(
-                        string "Connected"
-                        variant boolean true
-                    )
-                ]
-            )
-            dict entry(                                     //property
-                string "org.bluez.Battery1"
-                array [
-                    dict entry(
-                        string "Percentage"
-                        variant byte 100
-                    )
-                ]
-            )
+           dict entry(                                      //property
+              string "org.bluez.Device1"
+              array [
+                 dict entry(                                //value
+                    string "Address"
+                    variant string "03:21:8B:91:16:4D"
+                 )
+                 dict entry(                                //value
+                    string "Name"
+                    variant string "JBL TUNE160BT"
+                 )
+                 dict entry(                                //value
+                    string "Icon"
+                    variant string "audio-headset"
+                 )
+                 dict entry(                                //value
+                    string "Connected"
+                    variant boolean true
+                 )
+              ]
+           )
+           dict entry(                                      //property
+              string "org.bluez.Battery1"
+              array [
+                 dict entry(                                //value
+                    string "Percentage"
+                    variant byte 100
+                 )
+              ]
+           )
         ]
     )
 ]
 */
+
+static void detectBluetoothValue(FFDBusData* dbus, DBusMessageIter* iter, FFBluetoothDevice* device)
+{
+    if(dbus->lib->ffdbus_message_iter_get_arg_type(iter) != DBUS_TYPE_DICT_ENTRY)
+        return;
+
+    DBusMessageIter dictIter;
+    dbus->lib->ffdbus_message_iter_recurse(iter, &dictIter);
+
+    if(dbus->lib->ffdbus_message_iter_get_arg_type(&dictIter) != DBUS_TYPE_STRING)
+        return;
+
+    const char* deviceProperty;
+    dbus->lib->ffdbus_message_iter_get_basic(&dictIter, &deviceProperty);
+
+    dbus->lib->ffdbus_message_iter_next(&dictIter);
+
+    if(strcmp(deviceProperty, "Address") == 0)
+        ffDBusGetValue(dbus, &dictIter, &device->address);
+    else if(strcmp(deviceProperty, "Name") == 0)
+        ffDBusGetValue(dbus, &dictIter, &device->name);
+    else if(strcmp(deviceProperty, "Icon") == 0)
+        ffDBusGetValue(dbus, &dictIter, &device->type);
+    else if(strcmp(deviceProperty, "Percentage") == 0)
+        ffDBusGetByte(dbus, &dictIter, &device->battery);
+    else if(strcmp(deviceProperty, "Connected") == 0)
+        ffDBusGetBool(dbus, &dictIter, &device->connected);
+}
 
 static void detectBluetoothProperty(FFDBusData* dbus, DBusMessageIter* iter, FFBluetoothDevice* device)
 {
@@ -66,31 +98,7 @@ static void detectBluetoothProperty(FFDBusData* dbus, DBusMessageIter* iter, FFB
 
     while(true)
     {
-        if(dbus->lib->ffdbus_message_iter_get_arg_type(&arrayIter) != DBUS_TYPE_DICT_ENTRY)
-            FF_DBUS_ITER_CONTINUE(dbus, &arrayIter)
-
-        DBusMessageIter deviceIter;
-        dbus->lib->ffdbus_message_iter_recurse(&arrayIter, &deviceIter);
-
-        if(dbus->lib->ffdbus_message_iter_get_arg_type(&deviceIter) != DBUS_TYPE_STRING)
-            FF_DBUS_ITER_CONTINUE(dbus, &arrayIter)
-
-        const char* deviceProperty;
-        dbus->lib->ffdbus_message_iter_get_basic(&deviceIter, &deviceProperty);
-
-        dbus->lib->ffdbus_message_iter_next(&deviceIter);
-
-        if(strcmp(deviceProperty, "Address") == 0)
-            ffDBusGetValue(dbus, &deviceIter, &device->address);
-        else if(strcmp(deviceProperty, "Name") == 0)
-            ffDBusGetValue(dbus, &deviceIter, &device->name);
-        else if(strcmp(deviceProperty, "Icon") == 0)
-            ffDBusGetValue(dbus, &deviceIter, &device->type);
-        else if(strcmp(deviceProperty, "Percentage") == 0)
-            ffDBusGetByte(dbus, &deviceIter, &device->battery);
-        else if(strcmp(deviceProperty, "Connected") == 0)
-            ffDBusGetBool(dbus, &deviceIter, &device->connected);
-
+        detectBluetoothValue(dbus, &arrayIter, device);
         FF_DBUS_ITER_CONTINUE(dbus, &arrayIter);
     }
 }
@@ -156,8 +164,6 @@ static void detectBluetoothRoot(FFBluetoothResult* bluetooth, FFDBusData* dbus, 
         detectBluetoothObject(bluetooth, dbus, &arrayIter);
         FF_DBUS_ITER_CONTINUE(dbus, &arrayIter);
     }
-
-    return;
 }
 
 static const char* detectBluetooth(const FFinstance* instance, FFBluetoothResult* bluetooth)

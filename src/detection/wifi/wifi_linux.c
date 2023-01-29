@@ -200,7 +200,7 @@ static const char* detectWifiWithLibnm(const FFinstance* instance, FFlist* resul
 
 #endif
 
-#include "common/io.h"
+#include "common/io/io.h"
 
 #include <net/if.h>
 #include <linux/wireless.h>
@@ -219,7 +219,7 @@ static const char* detectWifiWithIoctls(FF_MAYBE_UNUSED const FFinstance* instan
     for(struct if_nameindex* i = infs; !(i->if_index == 0 && i->if_name == NULL); ++i)
     {
         ffStrbufSetF(&path, "/sys/class/net/%s/phy80211", i->if_name);
-        if(!ffFileExists(path.chars, S_IFDIR))
+        if(!ffPathExists(path.chars, FF_PATHTYPE_DIRECTORY))
             continue;
 
         FFWifiResult* item = (FFWifiResult*)ffListAdd(result);

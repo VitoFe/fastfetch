@@ -1,7 +1,7 @@
 #include "fastfetch.h"
 #include "terminalfont.h"
 #include "detection/terminalshell/terminalshell.h"
-#include "common/io.h"
+#include "common/io/io.h"
 
 #ifdef FF_HAVE_FREETYPE
     #include "common/library.h"
@@ -62,7 +62,7 @@ void ffDetectTerminalFontPlatform(const FFinstance* instance, const FFTerminalSh
         return;
     }
 
-    if(!ffFileExists(FF_TERMUX_FONT_PATH, S_IFREG))
+    if(!ffPathExists(FF_TERMUX_FONT_PATH, FF_PATHTYPE_FILE))
     {
         ffFontInitCopy(&terminalFont->font, "monospace");
         return;

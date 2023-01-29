@@ -1,5 +1,5 @@
 #include "displayserver_linux.h"
-#include "common/io.h"
+#include "common/io/io.h"
 #include "common/properties.h"
 #include "common/parsing.h"
 #include "common/processing.h"
@@ -48,7 +48,7 @@ static const char* parseEnv()
 
     if(
         getenv("WAYLAND_DISPLAY") != NULL &&
-        ffFileExists("/mnt/wslg/", S_IFDIR)
+        ffPathExists("/mnt/wslg/", FF_PATHTYPE_DIRECTORY)
     ) return "WSLg";
 
     return NULL;
