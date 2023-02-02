@@ -3,10 +3,20 @@
 Features:
 * Bluetooth module
 * Sound module
+* Gamepad module
+* Support colored percentage numbers output (#409)
+* Support `--localip-compact-type` option (#408)
+* Terminator terminal font detection (@Zerogiven, #415)
 
 Bugfixes:
 
 * Fix a rare case that fails to detect terminal
+* Fix Muffin detection (@Zerogiven, #411)
+* Fix IPv6 detection (Windows)
+
+Other:
+
+* Simplified wmtheme output format (Windows)
 
 # 1.9.1
 

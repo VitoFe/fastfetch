@@ -1,9 +1,10 @@
 #include "fastfetch.h"
-#include "util/FFvaluestore.h"
 #include "common/printing.h"
 #include "common/parsing.h"
 #include "common/io/io.h"
 #include "common/time.h"
+#include "util/FFvaluestore.h"
+#include "util/stringUtils.h"
 
 #include <stdlib.h>
 #include <ctype.h>
@@ -173,11 +174,12 @@ static inline void printCommandHelp(const char* command)
     }
     else if(strcasecmp(command, "display-format") == 0)
     {
-        constructAndPrintCommandHelpFormat("display", "{}x{} @ {}Hz", 4,
+        constructAndPrintCommandHelpFormat("display", "{}x{} @ {}Hz", 5,
             "Screen width",
             "Screen height",
             "Screen refresh rate",
-            "Screen brightness"
+            "Screen scaled width",
+            "Screen scaled height"
         );
     }
     else if(strcasecmp(command, "de-format") == 0)
@@ -460,7 +462,13 @@ static inline void printCommandHelp(const char* command)
             "Main",
             "Name",
             "Volume",
-            "Manufacturer",
+            "Identifier"
+        );
+    }
+    else if(strcasecmp(command, "gamepad-format") == 0)
+    {
+        constructAndPrintCommandHelpFormat("gamepad", "{1}", 1,
+            "Name",
             "Identifier"
         );
     }
@@ -928,8 +936,6 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
 
     else if(strcasecmp(key, "-r") == 0 || strcasecmp(key, "--recache") == 0)
         instance->config.recache = optionParseBoolean(value);
-    else if(strcasecmp(key, "--nocache") == 0)
-        fputs("`--nocache` are obsoleted. Caching functions other than image caching are removed.\n\n", stderr);
     else if(strcasecmp(key, "--load-config") == 0)
         optionParseConfigFile(instance, data, key, value);
     else if(strcasecmp(key, "--gen-config") == 0)
@@ -1169,6 +1175,7 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
     else if(optionParseModuleArgs(key, value, "users", &instance->config.users)) {}
     else if(optionParseModuleArgs(key, value, "bluetooth", &instance->config.bluetooth)) {}
     else if(optionParseModuleArgs(key, value, "sound", &instance->config.sound)) {}
+    else if(optionParseModuleArgs(key, value, "gamepad", &instance->config.gamepad)) {}
 
     ///////////////////
     //Library options//
@@ -1263,12 +1270,21 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.diskShowUnknown = optionParseBoolean(value);
     else if(strcasecmp(key, "--bluetooth-show-disconnected") == 0)
         instance->config.bluetoothShowDisconnected = optionParseBoolean(value);
-    else if(strcasecmp(key, "--sound-show-all") == 0)
-        instance->config.soundShowAll = optionParseBoolean(value);
+    else if(strcasecmp(key, "--sound-type") == 0)
+    {
+        optionParseEnum(key, value, &instance->config.soundType,
+            "main", FF_SOUND_TYPE_MAIN,
+            "active", FF_SOUND_TYPE_ACTIVE,
+            "all", FF_SOUND_TYPE_ALL,
+            NULL
+        );
+    }
     else if(strcasecmp(key, "--battery-dir") == 0)
         optionParseString(key, value, &instance->config.batteryDir);
     else if(strcasecmp(key, "--separator-string") == 0)
         optionParseString(key, value, &instance->config.separatorString);
+    else if(strcasecmp(key, "--localip-v6first") == 0)
+        instance->config.localIpV6First = optionParseBoolean(value);
     else if(strcasecmp(key, "--localip-show-ipv4") == 0)
         instance->config.localIpShowIpV4 = optionParseBoolean(value);
     else if(strcasecmp(key, "--localip-show-ipv6") == 0)
@@ -1277,6 +1293,15 @@ static void parseOption(FFinstance* instance, FFdata* data, const char* key, con
         instance->config.localIpShowLoop = optionParseBoolean(value);
     else if(strcasecmp(key, "--localip-name-prefix") == 0)
         optionParseString(key, value, &instance->config.localIpNamePrefix);
+    else if(strcasecmp(key, "--localip-compact-type") == 0)
+    {
+        optionParseEnum(key, value, &instance->config.localIpCompactType,
+            "none", FF_LOCALIP_COMPACT_TYPE_NONE,
+            "oneline", FF_LOCALIP_COMPACT_TYPE_ONELINE,
+            "multiline", FF_LOCALIP_COMPACT_TYPE_MULTILINE,
+            NULL
+        );
+    }
     else if(strcasecmp(key, "--os-file") == 0)
         optionParseString(key, value, &instance->config.osFile);
     else if(strcasecmp(key, "--player-name") == 0)
@@ -1474,6 +1499,8 @@ static void parseStructureCommand(FFinstance* instance, FFdata* data, const char
         ffPrintBluetooth(instance);
     else if(strcasecmp(line, "sound") == 0)
         ffPrintSound(instance);
+    else if(strcasecmp(line, "gamepad") == 0)
+        ffPrintGamepad(instance);
     else
         ffPrintErrorString(instance, line, 0, NULL, NULL, "<no implementation provided>");
 }

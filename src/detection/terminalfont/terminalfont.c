@@ -320,6 +320,37 @@ FF_MAYBE_UNUSED static bool detectKitty(const FFinstance* instance, FFTerminalFo
     return true;
 }
 
+static void detectTerminator(const FFinstance* instance, FFTerminalFontResult* result)
+{
+    FF_STRBUF_AUTO_DESTROY useSystemFont;
+    ffStrbufInit(&useSystemFont);
+
+    FF_STRBUF_AUTO_DESTROY fontName;
+    ffStrbufInit(&fontName);
+
+    FFpropquery fontQuery[] = {
+        {"use_system_font =", &useSystemFont},
+        {"font =", &fontName},
+    };
+
+    if(!ffParsePropFileConfigValues(instance, "terminator/config", 2, fontQuery))
+    {
+        ffStrbufAppendS(&result->error, "Couldn't read Terminator config file");
+        return;
+    }
+
+    if(ffStrbufIgnCaseEqualS(&useSystemFont, "True"))
+    {
+        ffFontInitCopy(&result->font, "System");
+        return;
+    }
+
+    if(fontName.length == 0)
+        ffFontInitValues(&result->font, "mono", "8");
+    else
+        ffFontInitPango(&result->font, fontName.chars);
+}
+
 static bool detectWezterm(FF_MAYBE_UNUSED const FFinstance* instance, FFTerminalFontResult* result)
 {
     FF_STRBUF_AUTO_DESTROY fontName;
@@ -354,6 +385,8 @@ static bool detectTerminalFontCommon(const FFinstance* instance, const FFTermina
 {
     if(ffStrbufStartsWithIgnCaseS(&terminalShell->terminalProcessName, "alacritty"))
         detectAlacritty(instance, terminalFont);
+    else if(ffStrbufStartsWithIgnCaseS(&terminalShell->terminalProcessName, "terminator"))
+        detectTerminator(instance, terminalFont);
     else if(ffStrbufStartsWithIgnCaseS(&terminalShell->terminalProcessName, "wezterm-gui"))
         detectWezterm(instance, terminalFont);
 
@@ -385,7 +418,7 @@ const FFTerminalFontResult* ffDetectTerminalFont(const FFinstance* instance)
         const FFTerminalShellResult* terminalShell = ffDetectTerminalShell(instance);
 
         if(terminalShell->terminalProcessName.length == 0)
-            ffStrbufAppendS(&result.error, "Terminal font needs successfull terminal detection");
+            ffStrbufAppendS(&result.error, "Terminal font needs successful terminal detection");
 
         else if(!detectTerminalFontCommon(instance, terminalShell, &result))
             ffDetectTerminalFontPlatform(instance, terminalShell, &result);
