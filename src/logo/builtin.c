@@ -971,6 +971,25 @@ static const FFlogo* getLogoGarudaDragon()
     FF_LOGO_RETURN
 }
 
+static const FFlogo* getLogoGarudaSmall()
+{
+    FF_LOGO_INIT
+    FF_LOGO_NAMES("garuda_small", "garuda-linux-small")
+    FF_LOGO_LINES(
+        "     .----.\n"
+        "   .'   ,  '.\n"
+        " .'    '----,/\n"
+        "'.   -----,\n"
+        "  '.____.'"
+    )
+    FF_LOGO_COLORS(
+        "94" //bright-blue
+    )
+    FF_LOGO_COLOR_KEYS("31"); //red
+    FF_LOGO_COLOR_TITLE("31"); //red
+    FF_LOGO_RETURN
+}
+
 static const FFlogo* getLogoGentoo()
 {
     FF_LOGO_INIT
